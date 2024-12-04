@@ -1,14 +1,26 @@
 import express, { Request, Response, NextFunction } from "express"
 import path from "path"
+import dotenv from "dotenv"
+
+dotenv.config()
 
 const app = express()
-const PORT = 3001
+const PORT = process.env.PORT || 5000
 
 const CLIENT_BUILD_FOLDER = path.join(__dirname, '../../client/build')
-app.use(express.static(CLIENT_BUILD_FOLDER))
+
+if (process.env.MODE === "production") {
+    app.use(express.static(CLIENT_BUILD_FOLDER))
+}
 
 app.get('*', (req: Request, res: Response) => {
-    res.sendFile(path.join(CLIENT_BUILD_FOLDER, '/index.html'))
+    if (process.env.MODE === "production") {
+        res.sendFile(path.join(CLIENT_BUILD_FOLDER, '/index.html'))
+
+    } else {
+        res.send('React app is not built yet.')
+
+    }
 })
 
 app.listen(PORT, () => {
