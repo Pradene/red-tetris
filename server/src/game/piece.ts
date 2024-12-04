@@ -1,5 +1,3 @@
-import { reverse } from "dns"
-
 export const PieceTypes: string[] = ["I", "J", "L", "O", "S", "T", "Z",]
 
 export const PieceShapes: { [key: string]: string[][] } = {
@@ -62,8 +60,8 @@ export class Piece {
 
 	getBlocks() {
 		return this.shape.map(([dx, dy]) => ({
-			x: this.position.x,
-			y: this.position.y
+			x: this.position.x + dx,
+			y: this.position.y + dy
 		}))
 	}
 }

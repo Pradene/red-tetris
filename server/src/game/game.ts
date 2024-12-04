@@ -23,8 +23,12 @@ export class Game {
         }
     }
 
-    getPieceByIndex(index: number): Piece {
-        if (index >= this.pile.length) {
+    getPieceByIndex(index: number): Piece | undefined {
+        if (index < 0) {
+            return undefined
+        }
+
+        while (index >= this.pile.length) {
             this.createPiece()
         }
 
