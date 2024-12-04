@@ -1,17 +1,14 @@
 import express, { Request, Response, NextFunction } from "express"
+import path from "path"
 
 const app = express()
-const PORT = 3000
+const PORT = 3001
 
-app.use(express.json())
+const CLIENT_BUILD_FOLDER = path.join(__dirname, '../../client/build')
+app.use(express.static(CLIENT_BUILD_FOLDER))
 
-app.get('/', (req: Request, res: Response) => {
-    res.send('Hello World!')
-})
-
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-    console.error(err.stack)
-    res.status(500).send('Something went wrong!')
+app.get('*', (req: Request, res: Response) => {
+    res.sendFile(path.join(CLIENT_BUILD_FOLDER, '/index.html'))
 })
 
 app.listen(PORT, () => {
