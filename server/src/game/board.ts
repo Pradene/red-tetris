@@ -127,6 +127,14 @@ export class Board {
 		return true
 	}
 
+	private removeLines() {
+		const emptyRow = Array(COLS).fill("0")
+		const rowsRemaining = this.board.filter((row) => row.some((cell) => cell === "0"))
+		const rowsRemoved = ROWS - rowsRemaining.length
+		const rowsEmpty = Array.from({length: rowsRemoved}, () => emptyRow)
+		return [...rowsEmpty, ...rowsRemaining]
+	}
+
 	private copyPieceToBoard(piece: Piece | undefined) {
 		const board = this.board.map(row => [...row])
 
@@ -152,6 +160,7 @@ export class Board {
 
 	private savePieceToBoard(piece: Piece) {
 		this.board = this.copyPieceToBoard(piece)
+		this.board = this.removeLines()
 	}
 
 	private movePieceDown(): Boolean {
@@ -167,7 +176,7 @@ export class Board {
 		if (this.movePiece(direction) === false) {
 			const piece = this.currentPiece
 			if (piece === undefined) {
-				console.log("Piece ubndefined")
+				console.log("Piece undefined")
 				return false
 			}
 
@@ -231,9 +240,7 @@ export class Board {
 	}
 
 	public getShadow() {
-		return {
-			board: this.board
-		}
+		return { board: this.board }
 	}
 
 	public getState() {
