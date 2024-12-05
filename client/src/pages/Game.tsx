@@ -7,9 +7,9 @@ interface CellProps {
 	color: string
 }
 
-type CellState = "j" | "l" | "o" | "t" | "i" | "z" | "s" | "0"
+type CellState = "J" | "L" | "O" | "T" | "I" | "Z" | "S" | "0"
 
-const Cell: React.FC<CellProps> = ({size, color}) => {
+const Cell: React.FC<CellProps> = React.memo(({size, color}) => {
 	return (
 		<div
 			style={{
@@ -18,10 +18,11 @@ const Cell: React.FC<CellProps> = ({size, color}) => {
 				backgroundColor: color,
 				border: 'none',
 				borderRadius: '2px',
+				transition: 'backgound-color 0.2s'
 			}} 
 		/>
 	)
-}
+}, (prevProps: CellProps, nextProps: CellProps) => prevProps.color === nextProps.color)
 
 const COLS = 10
 const ROWS = 20
@@ -46,6 +47,9 @@ const Board: React.FC = () => {
 					break
 				case "ArrowUp":
 					socket.emit("rotate")
+					break
+				case "ArrowDown":
+					socket.emit("down")
 					break
 				default:
 					break
@@ -89,6 +93,10 @@ const Board: React.FC = () => {
 		console.log("Received message:", data)
 		setBoard(data.board)
 	  })
+
+	  s.current.on("game_over", (data) => {
+		console.log("Game over:", data)
+	  })
   
 	  s.current.emit("create_game", "Hello you")
   
@@ -99,15 +107,22 @@ const Board: React.FC = () => {
 
 	const cellSize = 24
 
-	const getColorForCell = (state: CellState) => {
-		switch (state) {
-			case "0":
-				return "blue"
-			default:
-				return "red"
+	const getColorForCell = (type: CellState) => {
+		// Define color mappings for each theme
+		const colorMapping: Record<CellState, string> = {
+			"J": "#6F1D1B",
+			"L": "#F7C548",
+			"O": "#2B50AA",
+			"T": "#2B50AA",
+			"I": "darkcyan",
+			"Z": "darkred",
+			"S": "darkgreen",
+			"0": "red",
 		}
+		
+		// Return color based on the current theme
+		return colorMapping[type] || "red"
 	}
-
 
 	return (
 		<div style={{ 
@@ -115,7 +130,7 @@ const Board: React.FC = () => {
 			gridTemplateColumns: `repeat(${COLS}, ${cellSize}px)`,
 			gap: "1px" }}
 		>
-			{board.map((row, rowIndex) =>
+			{board.flatMap((row, rowIndex) =>
 				row.map((cell, colIndex) => (
 					<Cell
 			  			key={`${rowIndex * COLS + colIndex}`}
