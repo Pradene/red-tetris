@@ -24,11 +24,15 @@ function App() {
       console.log("Connected to socket.io server:", socket.id)
     })
 
-    currentSocket.on("message", (data) => {
+    currentSocket.on("game_started", (data) => {
       console.log("Received message:", data)
     })
 
-    currentSocket.emit("message", "Hello you")
+    currentSocket.on("game_state", (data) => {
+      console.log("Received message:", data)
+    })
+
+    currentSocket.emit("create_game", "Hello you")
 
     return () => {
       currentSocket.disconnect()

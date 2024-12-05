@@ -1,3 +1,4 @@
+import { io } from ".."
 import { Game } from "./game"
 import { Piece } from "./piece"
 
@@ -6,27 +7,24 @@ const ROWS: number = 20
 
 export class Board {
 	game: Game | undefined
+	player: string
 	board: string[][]
 	currentPiece: Piece | undefined
 	nextPiece: Piece | undefined
 	gamePieceIndex: number
 
-	constructor()
-	constructor(game: Game)
 
-	constructor(game?: Game) {
+	constructor(player: string)
+	constructor(player: string, game?: Game)
+
+	constructor(player: string, game?: Game) {
 		this.game = game
+		this.player = player
 		this.board = Array.from({ length: ROWS }, () => Array(COLS).fill('0'))
 		this.gamePieceIndex = 0
-
-		this.currentPiece = this.getNextPieceOfGame()
-		if (this.currentPiece !== undefined) {
-			this.currentPiece.position = {x: 5, y: 0}
-			this.nextPiece = this.getNextPieceOfGame()
-		}
 	}
 
-	canMove(position: {x: number, y: number}, shape: string[][]): Boolean {
+	private canMove(position: {x: number, y: number}, shape: string[][]): Boolean {
 		return shape.every((row, dy) => {
 			return row.every((cell, dx) => {
 				if (cell === '0') {
@@ -45,7 +43,7 @@ export class Board {
 		})	
 	}
 
-	canRotatePiece(piece: Piece ): Boolean {
+	private canRotatePiece(piece: Piece ): Boolean {
 		const position: {x: number, y: number} | undefined = piece.position
 		if (piece === undefined ||
 			position === undefined) {
@@ -56,22 +54,28 @@ export class Board {
 		return this.canMove(position, rotatedShape)
 	}
 
-	rotatePiece() {
-		if (this.currentPiece === undefined ||
-			this.currentPiece.position === undefined) {
+	public rotatePiece() {
+		this.getPieces()
+
+		const piece = this.currentPiece
+		const position: {x: number, y: number} | undefined = piece?.position
+		
+		if (piece === undefined ||
+			position === undefined) {
 			return false
 		}
 		
-		if (this.canRotatePiece(this.currentPiece) === false) {
+		if (this.canRotatePiece(piece) === false) {
 			return false
 		}
 			
-		this.currentPiece.rotate()
+		piece.rotate()
+
 		return true
 	}
 
-	canMovePiece(piece: Piece, direction: {x: number, y: number}): Boolean {
-		const position: {x: number, y: number} | undefined = piece.position
+	private canMovePiece(piece: Piece | undefined, direction: {x: number, y: number}): Boolean {
+		const position: {x: number, y: number} | undefined = piece?.position
 		
 		if (piece === undefined ||
 			position === undefined) {
@@ -84,9 +88,14 @@ export class Board {
 		return this.canMove({x, y}, piece.shape)
 	}
 
-	movePiece(piece: Piece | undefined, direction: {x: number, y: number}) {
+	public movePiece(direction: {x: number, y: number}) {
+		this.getPieces()
+
+		const piece = this.currentPiece
+		const position: {x: number, y: number} | undefined = piece?.position
+		
 		if (piece === undefined ||
-			piece.position === undefined) {
+			position === undefined) {
 			return false
 		}
 		
@@ -94,12 +103,13 @@ export class Board {
 			return false
 		}
 			
-		piece.position.x += direction.x
-		piece.position.y += direction.y
+		position.x += direction.x
+		position.y += direction.y
+
 		return true
 	}
 
-	savePieceToBoard(piece: Piece) {
+	public savePieceToBoard(piece: Piece) {
 		const position = piece.position
 		if (position === undefined) {
 			return
@@ -122,17 +132,22 @@ export class Board {
 		})
 	}
 
-	movePieceDown(piece: Piece): Boolean {
+	public movePieceDown(): Boolean {
+		this.getPieces()
+
+		const piece = this.currentPiece
+		const position: {x: number, y: number} | undefined = piece?.position
+		
 		if (piece === undefined ||
-			piece.position == undefined) {
+			position === undefined) {
 			return false
 		}
 
 		const direction = {x: 0, y: 1}
-		if (this.movePiece(piece, direction) === false) {
+		if (this.movePiece(direction) === false) {
 			this.savePieceToBoard(piece)
 
-			this.currentPiece = this.getNextPiece()
+			this.currentPiece = this.nextPiece
 			this.nextPiece = this.getNextPieceOfGame()
 
 			return false
@@ -141,18 +156,13 @@ export class Board {
 		return true
 	}
 
-	movePieceToBottom() {
-		const piece: Piece | undefined = this.currentPiece
-		if (piece === undefined) {
-			return
-		}
-		
-		while (this.movePieceDown(piece)) {
+	public movePieceToBottom() {
+		while (this.movePieceDown()) {
 			continue
 		}
 	}
 
-	getNextPieceOfGame(): Piece | undefined {
+	private getNextPieceOfGame(): Piece | undefined {
 		if (this.game === undefined) {
 			return undefined
 		}
@@ -167,23 +177,18 @@ export class Board {
 		return piece
 	}
 
-	getNextPieceOfType(type: string): Piece | undefined {
-		const piece =  new Piece(type)
-		if (piece === undefined) {
-			return undefined
+	private getPieces(): void {
+		if (this.currentPiece === undefined)  {
+			if (this.nextPiece === undefined) {
+				this.nextPiece = this.getNextPieceOfGame()
+			}
+
+			this.currentPiece = this.nextPiece
+			this.nextPiece = this.getNextPieceOfGame()
 		}
-		
-		piece.position = {x: 5, y: 0}
-		return piece
 	}
 
-	getNextPiece() {
-		const piece =  Piece.random()
-		piece.position = {x: 5, y: 0}
-		return piece
-	}
-
-	getState() {
+	public getState() {
 		return {
 			board: this.board,
 			currentPiece: this.currentPiece ? {
