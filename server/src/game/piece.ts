@@ -34,12 +34,17 @@ export const PieceShapes: { [key: string]: string[][] } = {
 export class Piece {
 	type: string
 	shape: string[][]
-	position: {x: number, y: number}
+	position: {x: number, y: number} | undefined
 
-	constructor(type: string) {
+	constructor(type: string)
+	constructor(type: string, position: {x: number, y: number} | undefined)
+	constructor(type: string, position: {x: number, y: number} | undefined, shape: string[][] | undefined)
+	
+	constructor (type: string, position?: {x: number, y: number}, shape?: string[][]) {
 		this.type = type
-		this.position = {x: 5, y: 0}
-		this.shape = PieceShapes[type] || []
+		this.position = position
+		// Copy the shape is provided for rotation saving
+		this.shape = (shape !== undefined) ? shape : PieceShapes[type] || []
 	}
 
 	static random(): Piece {
@@ -47,21 +52,22 @@ export class Piece {
 		return new Piece(randomType)
 	}
 
-	print() {
+	clone(): Piece {
+		return new Piece(this.type, this.position, this.shape)
+	}
+
+	print(): void {
 		this.shape.forEach(row => {
 			console.log(row.join(' '))
 		})
 	}
 
+	getRotatedShape(): string[][] {
+		return this.shape[0].map((_, index) => this.shape.map(row => row[index]).reverse())
+	}
+
 	rotate(): void {
         // The idea of rotating a 2D matrix is to transpose and then reverse each row
-        this.shape = this.shape[0].map((_, index) => this.shape.map(row => row[index]).reverse())
+        this.shape = this.getRotatedShape()
     }
-
-	getBlocks() {
-		return this.shape.map(([dx, dy]) => ({
-			x: this.position.x + dx,
-			y: this.position.y + dy
-		}))
-	}
 }
