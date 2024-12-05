@@ -9,8 +9,6 @@ export class Game {
     pile: Piece[]
     players: string[]
     boards: Map<string, Board>
-    pieceMoveIntervalId: NodeJS.Timeout | null = null
-    pieceMoveINterval: number = 500
 
     constructor(id: number) {
         this.id = id
@@ -41,26 +39,24 @@ export class Game {
         this.started = true
         this.initializePile()
 
-        this.players.forEach((socketId) => {
-            console.log(`trying to send a message to user ${socketId}`)
+        for (let [socketId, board] of this.boards) {
+            board.start()
+            
             io.to(socketId).emit("game_started", {
                 gameId: this.id,
                 message: "Game has started"
             })
-        })
-
-        this.pieceMoveIntervalId = setInterval(() => {
-            console.log("Sending game state")
-            for (let [socketId, board] of this.boards) {
-                board.movePieceDown()
-                this.sendGameState(socketId)
-            }
-        }, this.pieceMoveINterval)
+        }
     }
 
-    updatePlayer(socketId: string, direction: {x: number, y:number}) {
+    movePlayer(socketId: string, direction: {x: number, y:number}) {
         const board = this.boards.get(socketId)
         board?.movePiece(direction)
+    }
+
+    rotatePlayer(socketId: string) {
+        const board = this.boards.get(socketId)
+        board?.rotatePiece()
     }
 
     createPiece(count: number = 1): void {

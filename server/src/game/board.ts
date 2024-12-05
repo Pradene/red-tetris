@@ -1,6 +1,8 @@
 import { Game } from "./game"
 import { Piece } from "./piece"
 
+import { io } from ".."
+
 const COLS: number = 10
 const ROWS: number = 20
 
@@ -13,6 +15,8 @@ export class Board {
 	gamePieceIndex: number
 	filled: Boolean = false
 
+    pieceMoveIntervalId: | NodeJS.Timeout | undefined = undefined
+    pieceMoveInterval: number = 500
 
 	constructor(player: string)
 	constructor(player: string, game?: Game)
@@ -76,6 +80,8 @@ export class Board {
 			
 		piece.rotate()
 
+		io.to(this.player).emit("game_state", this.getState())
+
 		return true
 	}
 
@@ -116,53 +122,63 @@ export class Board {
 		position.x += direction.x
 		position.y += direction.y
 
+		io.to(this.player).emit("game_state", this.getState())
+
 		return true
 	}
 
-	public savePieceToBoard(piece: Piece) {
-		const position = piece.position
-		if (position === undefined) {
-			return
+	private copyPieceToBoard(piece: Piece | undefined) {
+		const board = this.board.map(row => [...row])
+
+		if (piece !== undefined && piece.position) {
+			const { position, shape } = piece
+
+			shape.forEach((row, dy) => {
+				row.forEach((cell, dx) => {
+					if (cell !== '0') {
+						const x = position.x + dx;
+						const y = position.y + dy;
+	
+						if (x >= 0 && x < COLS && y >= 0 && y < ROWS) {
+							board[y][x] = cell;
+						}
+					}
+				})
+			})
 		}
 
-		piece.shape.forEach((row, dy) => {
-			row.forEach((cell, dx) => {
-				if (cell !== '0') {
-					const x = position.x + dx
-					const y = position.y + dy
-
-					if (x < 0 || x >= COLS ||
-						y < 0 || y >= ROWS) {
-						return
-					}
-
-					this.board[y][x] = cell
-				}
-			})
-		})
+		return board
 	}
 
-	public movePieceDown(): Boolean {
+	private savePieceToBoard(piece: Piece) {
+		this.board = this.copyPieceToBoard(piece)
+	}
+
+	private movePieceDown(): Boolean {
 		if (!this.currentPiece) {
 			const initialized = this.setCurrentPiece()
 			if (!initialized) {
+				console.log("Piece cannot be initialized")
 				return false
 			}
 		}
-
+		
 		const direction = {x: 0, y: 1}
 		if (this.movePiece(direction) === false) {
-			if (this.currentPiece) {
-				this.savePieceToBoard(this.currentPiece)
-			}
-
-			if (!this.setCurrentPiece()) {
-				this.filled = true
-				console.log('You lose')
+			const piece = this.currentPiece
+			if (piece === undefined) {
+				console.log("Piece ubndefined")
 				return false
 			}
 
-			return false
+			if (piece.position !== undefined && piece.position.y !== 0) {
+				this.savePieceToBoard(piece)
+				return this.setCurrentPiece()
+				
+			} else {
+				this.savePieceToBoard(piece)
+				return false
+			}
 		}
 
 		return true
@@ -194,15 +210,17 @@ export class Board {
 		}
 
 		if (this.nextPiece === undefined) {
+			console.error("Cannot get nextPiece")
 			return false
 		}
 
 		const initialPosition = {
-			x: Math.floor((COLS / 2) - (this.nextPiece.shape[0].length / 2)),
+			x: Math.floor(COLS / 2) - Math.floor(this.nextPiece.shape[0].length / 2),
 			y: 0
 		}
 		
 		if (!this.canBePlaced(initialPosition, this.nextPiece.shape)) {
+			console.log("Piece cannot be placed there")
 			return false
 		}
 
@@ -212,13 +230,34 @@ export class Board {
 		return true
 	}
 
-	public getState() {
+	public getShadow() {
 		return {
-			board: this.board,
-			currentPiece: this.currentPiece ? {
-				position: this.currentPiece.position,
-				shape: this.currentPiece.shape
-			} : null
+			board: this.board
 		}
+	}
+
+	public getState() {
+		const board = this.copyPieceToBoard(this.currentPiece)
+		return { board: board }
+	}
+
+	public start() {
+		if (this.setCurrentPiece() === false) {
+			return
+		}
+
+		this.pieceMoveIntervalId = setInterval(() => {
+            const canMove = this.movePieceDown()
+
+			if (!canMove) {
+				console.log("Game over")
+				io.to(this.player).emit("game_over", this.getState())
+				clearInterval(this.pieceMoveIntervalId)
+				return
+			}
+
+			io.to(this.player).emit("game_state", this.getState())
+
+        }, this.pieceMoveInterval)
 	}
 }

@@ -46,20 +46,30 @@ let gameIdCounter = 0
 
 io.on('connection', (socket) => {
     console.log(`A new user connected: ${socket.id}`)
+    const id = ++gameIdCounter
 
     socket.on('create_game', () => {
-        ++gameIdCounter
-        console.log(`Game created with ID: ${gameIdCounter}`)
+        console.log(`Game created with ID: ${id}`)
 
-        const game = new Game(gameIdCounter)
-        games.set(gameIdCounter, game)
+        const game = new Game(id)
+        games.set(id, game)
 
         game.addPlayer(socket.id)
     })
 
     socket.on('move', (data) => {
-        console.log(`Message from ${socket.id}:`, data)
-        io.emit('message', data)
+        console.log("move", data)
+        if (data.direction === undefined) {
+            return
+        }
+
+        const game = games.get(id)
+        game?.movePlayer(socket.id, data.direction)
+    })
+
+    socket.on('rotate', () => {
+        const game = games.get(id)
+        game?.rotatePlayer(socket.id)
     })
     
     socket.on('disconnect', () => {

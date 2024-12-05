@@ -28,6 +28,44 @@ const ROWS = 20
 
 const Board: React.FC = () => {
 
+	const [ keyPressed, setKeyPressed ] = useState<Boolean>(false)
+
+	useEffect(() => {
+		const handleKeyPressed = (event: KeyboardEvent) => {
+			if (keyPressed) {
+				return
+			}
+
+			setKeyPressed(true)
+			switch (event.key) {
+				case "ArrowLeft":
+					socket.emit("move", {direction: {x: -1, y: 0}})
+					break
+				case "ArrowRight":
+					socket.emit("move", {direction: {x: 1, y: 0}})
+					break
+				case "ArrowUp":
+					socket.emit("rotate")
+					break
+				default:
+					break
+			}
+		}
+
+		const handleKeyUp = () => {
+			setKeyPressed(false)
+		}
+
+		window.addEventListener("keydown", handleKeyPressed)
+		window.addEventListener("keyup", handleKeyUp)
+		
+		return () => {
+			window.removeEventListener("keydown", handleKeyPressed)
+			window.removeEventListener("keyup", handleKeyUp)
+		}
+	}, [keyPressed])
+
+
 	// Board initialization
 	// Fill all cell from the board with empty state ("0")
 	const [board, setBoard] = useState<CellState[][]>(
@@ -36,28 +74,26 @@ const Board: React.FC = () => {
 	
 	const s = useRef(socket)
 
-	useEffect(() => {
-	  const currentSocket = s.current
+	useEffect(() => {  
+	  s.current.connect()
   
-	  currentSocket.connect()
-  
-	  currentSocket.on("connect", () => {
+	  s.current.on("connect", () => {
 		console.log("Connected to socket.io server:", socket.id)
 	  })
   
-	  currentSocket.on("game_started", (data) => {
+	  s.current.on("game_started", (data) => {
 		console.log("Received message:", data)
 	  })
   
-	  currentSocket.on("game_state", (data) => {
+	  s.current.on("game_state", (data) => {
 		console.log("Received message:", data)
 		setBoard(data.board)
 	  })
   
-	  currentSocket.emit("create_game", "Hello you")
+	  s.current.emit("create_game", "Hello you")
   
 	  return () => {
-		currentSocket.disconnect()
+		s.current.disconnect()
 	  }
 	}, [])
 
@@ -71,7 +107,6 @@ const Board: React.FC = () => {
 				return "red"
 		}
 	}
-
 
 
 	return (
