@@ -45,9 +45,8 @@ export class Board {
 		})	
 	}
 
-	canRotatePiece(): Boolean {
-		const piece: Piece | undefined = this.currentPiece
-		const position: {x: number, y: number} | undefined = piece?.position
+	canRotatePiece(piece: Piece ): Boolean {
+		const position: {x: number, y: number} | undefined = piece.position
 		if (piece === undefined ||
 			position === undefined) {
 			return false
@@ -63,7 +62,7 @@ export class Board {
 			return false
 		}
 		
-		if (this.canRotatePiece() === false) {
+		if (this.canRotatePiece(this.currentPiece) === false) {
 			return false
 		}
 			
@@ -71,9 +70,8 @@ export class Board {
 		return true
 	}
 
-	canMovePiece(direction: {x: number, y: number}): Boolean {
-		const piece: Piece | undefined = this.currentPiece
-		const position: {x: number, y: number} | undefined = piece?.position
+	canMovePiece(piece: Piece, direction: {x: number, y: number}): Boolean {
+		const position: {x: number, y: number} | undefined = piece.position
 		
 		if (piece === undefined ||
 			position === undefined) {
@@ -86,18 +84,18 @@ export class Board {
 		return this.canMove({x, y}, piece.shape)
 	}
 
-	movePiece(direction: {x: number, y: number}) {
-		if (this.currentPiece === undefined ||
-			this.currentPiece.position === undefined) {
+	movePiece(piece: Piece | undefined, direction: {x: number, y: number}) {
+		if (piece === undefined ||
+			piece.position === undefined) {
 			return false
 		}
 		
-		if (this.canMovePiece(direction) === false) {
+		if (this.canMovePiece(piece, direction) === false) {
 			return false
 		}
 			
-		this.currentPiece.position.x += direction.x
-		this.currentPiece.position.y += direction.y
+		piece.position.x += direction.x
+		piece.position.y += direction.y
 		return true
 	}
 
@@ -114,7 +112,7 @@ export class Board {
 					const y = position.y + dy
 
 					if (x < 0 || x >= COLS ||
-						y > 0 || y >= ROWS) {
+						y < 0 || y >= ROWS) {
 						return
 					}
 
@@ -124,30 +122,34 @@ export class Board {
 		})
 	}
 
-	movePieceDown(): Boolean {
-		if (this.currentPiece === undefined ||
-			this.currentPiece.position == undefined) {
+	movePieceDown(piece: Piece): Boolean {
+		if (piece === undefined ||
+			piece.position == undefined) {
 			return false
 		}
 
 		const direction = {x: 0, y: 1}
-		if (this.movePiece(direction) === false) {
-			this.savePieceToBoard(this.currentPiece)
+		if (this.movePiece(piece, direction) === false) {
+			this.savePieceToBoard(piece)
+
 			this.currentPiece = this.getNextPiece()
 			this.nextPiece = this.getNextPieceOfGame()
 
 			return false
 		}
 
-		this.currentPiece.position.x += direction.x
-		this.currentPiece.position.y += direction.y
-
 		return true
 	}
 
 	movePieceToBottom() {
-		while (this.movePieceDown())
+		const piece: Piece | undefined = this.currentPiece
+		if (piece === undefined) {
+			return
+		}
+		
+		while (this.movePieceDown(piece)) {
 			continue
+		}
 	}
 
 	getNextPieceOfGame(): Piece | undefined {
@@ -159,6 +161,7 @@ export class Board {
 		
 		if (piece !== undefined) {
 			this.gamePieceIndex += 1
+			piece.position = {x: 5, y: 0}
 		}
 
 		return piece
@@ -178,5 +181,15 @@ export class Board {
 		const piece =  Piece.random()
 		piece.position = {x: 5, y: 0}
 		return piece
+	}
+
+	getState() {
+		return {
+			board: this.board,
+			currentPiece: this.currentPiece ? {
+				position: this.currentPiece.position,
+				shape: this.currentPiece.shape
+			} : null
+		}
 	}
 }
