@@ -17,24 +17,24 @@ export class Game {
         this.boards = new Map()
     }
 
-    initializePile(): void {
+    private initializePile(): void {
         this.createPiece(10)
     }
     
-    addPlayer(socketId: string): void {
+    public addPlayer(socketId: string): void {
         console.log(`User ${socketId} try to connect to game`)
+
+        if (this.started === true) {
+            return
+        }
 
         const board = new Board(socketId, this)
         this.players.push(socketId)
         this.boards.set(socketId, board)
-        
-        if (this.started === false) {
-            this.start()
-        }
     }
     
-    start() {
-        console.log(`Starring game ${this.id}`)
+    public start() {
+        console.log(`Starting game ${this.id}`)
 
         this.started = true
         this.initializePile()
@@ -49,35 +49,44 @@ export class Game {
         }
     }
 
-    movePlayer(socketId: string, direction: {x: number, y:number}) {
+    public downPlayer(socketId: string) {
         const board = this.boards.get(socketId)
+        if (board?.filled) {
+            return
+        }
+        
+        board?.movePieceToBottom()
+    }
+
+    public movePlayer(socketId: string, direction: {x: number, y:number}) {
+        const board = this.boards.get(socketId)
+        if (board?.filled) {
+            return
+        }
+
         board?.movePiece(direction)
     }
 
-    rotatePlayer(socketId: string) {
+    public rotatePlayer(socketId: string) {
         const board = this.boards.get(socketId)
+        if (board?.filled) {
+            return
+        }
+
         board?.rotatePiece()
     }
 
-    createPiece(count: number = 1): void {
+    private createPiece(count: number = 1): void {
         for (let index = 0; index < count; index++) {
             this.pile.push(Piece.random())
         }
     }
 
-    getPieceByIndex(index: number): Piece {
+    public getPieceByIndex(index: number): Piece {
         while (index >= this.pile.length) {
             this.createPiece()
         }
 
         return this.pile[index]
     }
-
-    
-	private sendGameState(socketId: string) {
-		console.log("Send game state")
-
-        const board = this.boards.get(socketId)
-		io.to(socketId).emit('game_state', board?.getState())
-	}
 }

@@ -28,6 +28,10 @@ export class Board {
 		this.gamePieceIndex = 0
 	}
 
+
+	// Game utility movements
+
+
 	private canBePlaced(position: {x: number, y: number}, shape: string[][]): Boolean {
 		return shape.every((row, dy) => {
 			return row.every((cell, dx) => {
@@ -58,6 +62,56 @@ export class Board {
 		return this.canBePlaced(position, rotatedShape)
 	}
 
+	private canMovePiece(piece: Piece | undefined, direction: {x: number, y: number}): Boolean {
+		const position: {x: number, y: number} | undefined = piece?.position
+		
+		if (piece === undefined ||
+			position === undefined) {
+			return false
+		}
+
+		const x = position.x + direction.x
+		const y = position.y + direction.y
+		
+		return this.canBePlaced({x, y}, piece.shape)
+	}
+
+	private movePieceDown(): Boolean {
+		if (!this.currentPiece) {
+			const initialized = this.setCurrentPiece()
+			if (!initialized) {
+				console.log("Piece cannot be initialized")
+				return false
+			}
+		}
+		
+		const direction = {x: 0, y: 1}
+		if (this.movePiece(direction) === false) {
+			const piece = this.currentPiece
+			if (piece !== undefined) {
+				this.savePieceToBoard(piece)
+				clearInterval(this.pieceMoveIntervalId)
+				if (this.setCurrentPiece() === false) {
+					this.filled = true
+					io.to(this.player).emit("game_over", this.getState())
+				}
+				
+				return false
+			}
+		}
+
+		return true
+	}
+
+
+	// Game movements
+
+
+	public movePieceToBottom() {
+		while (this.movePieceDown())
+			continue
+	}
+
 	public rotatePiece() {
 		if (!this.currentPiece) {
 			const initialized = this.setCurrentPiece()
@@ -85,20 +139,6 @@ export class Board {
 		return true
 	}
 
-	private canMovePiece(piece: Piece | undefined, direction: {x: number, y: number}): Boolean {
-		const position: {x: number, y: number} | undefined = piece?.position
-		
-		if (piece === undefined ||
-			position === undefined) {
-			return false
-		}
-
-		const x = position.x + direction.x
-		const y = position.y + direction.y
-		
-		return this.canBePlaced({x, y}, piece.shape)
-	}
-
 	public movePiece(direction: {x: number, y: number}) {
 		if (!this.currentPiece) {
 			const initialized = this.setCurrentPiece()
@@ -118,7 +158,7 @@ export class Board {
 		if (this.canMovePiece(piece, direction) === false) {
 			return false
 		}
-			
+
 		position.x += direction.x
 		position.y += direction.y
 
@@ -158,45 +198,20 @@ export class Board {
 		return board
 	}
 
+	private notifyPlayers() {
+		if (this.game === undefined) {
+			return
+		}
+
+		const id = `game_${this.game.id}`
+		io.to(id).emit('game_preview', this.getShadow())
+	}
+
 	private savePieceToBoard(piece: Piece) {
 		this.board = this.copyPieceToBoard(piece)
 		this.board = this.removeLines()
-	}
 
-	private movePieceDown(): Boolean {
-		if (!this.currentPiece) {
-			const initialized = this.setCurrentPiece()
-			if (!initialized) {
-				console.log("Piece cannot be initialized")
-				return false
-			}
-		}
-		
-		const direction = {x: 0, y: 1}
-		if (this.movePiece(direction) === false) {
-			const piece = this.currentPiece
-			if (piece === undefined) {
-				console.log("Piece undefined")
-				return false
-			}
-
-			if (piece.position !== undefined && piece.position.y !== 0) {
-				this.savePieceToBoard(piece)
-				return this.setCurrentPiece()
-				
-			} else {
-				this.savePieceToBoard(piece)
-				return false
-			}
-		}
-
-		return true
-	}
-
-	public movePieceToBottom() {
-		while (this.movePieceDown()) {
-			continue
-		}
+		this.notifyPlayers()
 	}
 
 	private getNextPiece(): Piece | undefined {
@@ -213,7 +228,7 @@ export class Board {
 		return piece
 	}
 
-	private setCurrentPiece() {
+	private setCurrentPiece(): Boolean {
 		if (this.nextPiece === undefined) {
 			this.nextPiece = this.getNextPiece()
 		}
@@ -236,6 +251,13 @@ export class Board {
 		this.nextPiece.position = initialPosition
 		this.currentPiece = this.nextPiece
 		this.nextPiece = this.getNextPiece()
+
+		io.to(this.player).emit("game_state", this.getState())
+
+		this.pieceMoveIntervalId = setInterval(() => {
+            this.movePieceDown()
+        }, this.pieceMoveInterval)
+
 		return true
 	}
 
@@ -252,19 +274,5 @@ export class Board {
 		if (this.setCurrentPiece() === false) {
 			return
 		}
-
-		this.pieceMoveIntervalId = setInterval(() => {
-            const canMove = this.movePieceDown()
-
-			if (!canMove) {
-				console.log("Game over")
-				io.to(this.player).emit("game_over", this.getState())
-				clearInterval(this.pieceMoveIntervalId)
-				return
-			}
-
-			io.to(this.player).emit("game_state", this.getState())
-
-        }, this.pieceMoveInterval)
 	}
 }
