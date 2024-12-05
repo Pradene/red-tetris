@@ -1,4 +1,3 @@
-import { io } from ".."
 import { Game } from "./game"
 import { Piece } from "./piece"
 
@@ -12,6 +11,7 @@ export class Board {
 	currentPiece: Piece | undefined
 	nextPiece: Piece | undefined
 	gamePieceIndex: number
+	filled: Boolean = false
 
 
 	constructor(player: string)
@@ -24,7 +24,7 @@ export class Board {
 		this.gamePieceIndex = 0
 	}
 
-	private canMove(position: {x: number, y: number}, shape: string[][]): Boolean {
+	private canBePlaced(position: {x: number, y: number}, shape: string[][]): Boolean {
 		return shape.every((row, dy) => {
 			return row.every((cell, dx) => {
 				if (cell === '0') {
@@ -51,11 +51,16 @@ export class Board {
 		}
 
 		const rotatedShape = piece.getRotatedShape()
-		return this.canMove(position, rotatedShape)
+		return this.canBePlaced(position, rotatedShape)
 	}
 
 	public rotatePiece() {
-		this.getPieces()
+		if (!this.currentPiece) {
+			const initialized = this.setCurrentPiece()
+			if (!initialized) {
+				return false
+			}
+		}
 
 		const piece = this.currentPiece
 		const position: {x: number, y: number} | undefined = piece?.position
@@ -85,11 +90,16 @@ export class Board {
 		const x = position.x + direction.x
 		const y = position.y + direction.y
 		
-		return this.canMove({x, y}, piece.shape)
+		return this.canBePlaced({x, y}, piece.shape)
 	}
 
 	public movePiece(direction: {x: number, y: number}) {
-		this.getPieces()
+		if (!this.currentPiece) {
+			const initialized = this.setCurrentPiece()
+			if (!initialized) {
+				return false
+			}
+		}
 
 		const piece = this.currentPiece
 		const position: {x: number, y: number} | undefined = piece?.position
@@ -133,22 +143,24 @@ export class Board {
 	}
 
 	public movePieceDown(): Boolean {
-		this.getPieces()
-
-		const piece = this.currentPiece
-		const position: {x: number, y: number} | undefined = piece?.position
-		
-		if (piece === undefined ||
-			position === undefined) {
-			return false
+		if (!this.currentPiece) {
+			const initialized = this.setCurrentPiece()
+			if (!initialized) {
+				return false
+			}
 		}
 
 		const direction = {x: 0, y: 1}
 		if (this.movePiece(direction) === false) {
-			this.savePieceToBoard(piece)
+			if (this.currentPiece) {
+				this.savePieceToBoard(this.currentPiece)
+			}
 
-			this.currentPiece = this.nextPiece
-			this.nextPiece = this.getNextPieceOfGame()
+			if (!this.setCurrentPiece()) {
+				this.filled = true
+				console.log('You lose')
+				return false
+			}
 
 			return false
 		}
@@ -162,7 +174,7 @@ export class Board {
 		}
 	}
 
-	private getNextPieceOfGame(): Piece | undefined {
+	private getNextPiece(): Piece | undefined {
 		if (this.game === undefined) {
 			return undefined
 		}
@@ -171,21 +183,33 @@ export class Board {
 		
 		if (piece !== undefined) {
 			this.gamePieceIndex += 1
-			piece.position = {x: 5, y: 0}
 		}
 
 		return piece
 	}
 
-	private getPieces(): void {
-		if (this.currentPiece === undefined)  {
-			if (this.nextPiece === undefined) {
-				this.nextPiece = this.getNextPieceOfGame()
-			}
-
-			this.currentPiece = this.nextPiece
-			this.nextPiece = this.getNextPieceOfGame()
+	private setCurrentPiece() {
+		if (this.nextPiece === undefined) {
+			this.nextPiece = this.getNextPiece()
 		}
+
+		if (this.nextPiece === undefined) {
+			return false
+		}
+
+		const initialPosition = {
+			x: Math.floor((COLS / 2) - (this.nextPiece.shape[0].length / 2)),
+			y: 0
+		}
+		
+		if (!this.canBePlaced(initialPosition, this.nextPiece.shape)) {
+			return false
+		}
+
+		this.nextPiece.position = initialPosition
+		this.currentPiece = this.nextPiece
+		this.nextPiece = this.getNextPiece()
+		return true
 	}
 
 	public getState() {

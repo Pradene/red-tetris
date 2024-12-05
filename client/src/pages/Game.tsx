@@ -1,4 +1,6 @@
-import React, { useState } from "react"
+import React, { useState, useRef, useEffect } from "react"
+
+import socket from "../utils/socket"
 
 interface CellProps {
 	size: number,
@@ -25,12 +27,39 @@ const COLS = 10
 const ROWS = 20
 
 const Board: React.FC = () => {
-	
+
 	// Board initialization
 	// Fill all cell from the board with empty state ("0")
 	const [board, setBoard] = useState<CellState[][]>(
 		Array.from({length: ROWS}, () => Array(COLS).fill("0"))
 	)
+	
+	const s = useRef(socket)
+
+	useEffect(() => {
+	  const currentSocket = s.current
+  
+	  currentSocket.connect()
+  
+	  currentSocket.on("connect", () => {
+		console.log("Connected to socket.io server:", socket.id)
+	  })
+  
+	  currentSocket.on("game_started", (data) => {
+		console.log("Received message:", data)
+	  })
+  
+	  currentSocket.on("game_state", (data) => {
+		console.log("Received message:", data)
+		setBoard(data.board)
+	  })
+  
+	  currentSocket.emit("create_game", "Hello you")
+  
+	  return () => {
+		currentSocket.disconnect()
+	  }
+	}, [])
 
 	const cellSize = 24
 
@@ -42,6 +71,8 @@ const Board: React.FC = () => {
 				return "red"
 		}
 	}
+
+
 
 	return (
 		<div style={{ 
