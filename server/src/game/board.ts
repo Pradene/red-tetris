@@ -44,8 +44,8 @@ export class Board {
 
 				return (
 					nx >= 0 && nx < COLS &&
-					ny >= 0 && ny < ROWS &&
-					this.board[ny][nx] === '0'
+					ny >= -(shape.length) && ny < ROWS &&
+					((ny >= 0) === (ny >= 0 && this.board[ny][nx] === '0'))
 				)
 			})
 		})	
@@ -240,7 +240,7 @@ export class Board {
 
 		const initialPosition = {
 			x: Math.floor(COLS / 2) - Math.floor(this.nextPiece.shape[0].length / 2),
-			y: 0
+			y: -(this.nextPiece.shape.length - 1)
 		}
 		
 		if (!this.canBePlaced(initialPosition, this.nextPiece.shape)) {
