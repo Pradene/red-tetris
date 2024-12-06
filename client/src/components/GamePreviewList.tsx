@@ -10,12 +10,12 @@ const GamePreviewList: React.FC<GamePreviewProps> = ({ gamePreviews }) => {
 	  	<div className='game-preview-list'>
 			{Array.from(gamePreviews.entries()).map(([username, board], index) => (
 		  		<div key={index} className='game-preview'>
-					<div>
-						<h3>{username}</h3>
-						<p>Score: 0</p>
+                    <div>
+						<h3 style={{margin: "0"}}>{username}:</h3>
+						<p style={{margin: "0"}}>0 points</p>
 					</div>
-					<div style={{height: "100%", width: "100%"}}>
-						{/* <Board cols={10} rows={20} board={board} /> */}
+					<div style={{width: "40px"}}>
+						<Board cols={10} rows={20} board={board} />
 					</div>
 		  		</div>
 			))}

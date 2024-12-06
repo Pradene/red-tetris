@@ -149,26 +149,29 @@ const Game: React.FC = () => {
 
 	return (
 		<div className="game">
-			<div className="game-shadows">
+			<div className="game-previews">
 				<GamePreviewList gamePreviews={previews} />
 			</div>
 			<div className="game-board">
 				<Board cols={COLS} rows={ROWS} board={board} />
-			</div>
-			<div className="game-sidebar">
-				<div className="next-piece">
-					<div style={{width: "50%"}}>
-						<Board cols={nextPiece[0].length} rows={nextPiece.length} board={nextPiece} />
-					</div>
-				</div>
-				<div className="score">
-					<div>
-						<p>Lines :</p>
-					</div>
-					<div>
-						<p>Score :</p>
-					</div>
-				</div>
+			    <div className="game-sidebar">
+				    <div className="next-piece">
+					    <div>
+						    <p>Next piece :</p>
+					    </div>
+					    <div style={{width: "50%"}}>
+						    <Board cols={nextPiece[0].length} rows={nextPiece.length} board={nextPiece} />
+					    </div>
+				    </div>
+				    <div className="score">
+				    	<div>
+				    		<p>Lines :</p>
+				    	</div>
+				    	<div>
+				    		<p>Score :</p>
+				    	</div>
+				    </div>
+			    </div>
 			</div>
 		</div>
 	)
