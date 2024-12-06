@@ -3,11 +3,16 @@ import { Piece } from "./piece"
 
 import { io } from "../index"
 
+export interface Player  {
+    socketId: string,
+    username: string
+}
+
 export class Game {
     id: number
     started: Boolean = false
     pile: Piece[]
-    players: string[]
+    players: Player[]
     boards: Map<string, Board>
 
     constructor(id: number) {
@@ -28,24 +33,28 @@ export class Game {
             return
         }
 
-        const board = new Board(socketId, this)
-        this.players.push(socketId)
+        const player = {
+            socketId: socketId,
+            username: "Nerdpae"
+        }
+
+        this.players.push(player)
+        const board = new Board(player, this)
         this.boards.set(socketId, board)
     }
     
     public start() {
-        console.log(`Starting game ${this.id}`)
+        io.to(`game_${this.id}`).emit("game_started", {
+            gameId: this.id,
+            players: this.players,
+            message: "Game has started"
+        })
 
-        this.started = true
         this.initializePile()
+        this.started = true
 
         for (let [socketId, board] of this.boards) {
             board.start()
-            
-            io.to(socketId).emit("game_started", {
-                gameId: this.id,
-                message: "Game has started"
-            })
         }
     }
 

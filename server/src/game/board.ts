@@ -3,25 +3,28 @@ import { Piece } from "./piece"
 
 import { io } from ".."
 
+import { Player } from "./game"
+
 const COLS: number = 10
 const ROWS: number = 20
 
 export class Board {
 	game: Game | undefined
-	player: string
+	player: Player
 	board: string[][]
 	currentPiece: Piece | undefined
 	nextPiece: Piece | undefined
 	gamePieceIndex: number
 	filled: Boolean = false
+	rowsRemoved: number = 0
 
     pieceMoveIntervalId: | NodeJS.Timeout | undefined = undefined
     pieceMoveInterval: number = 500
 
-	constructor(player: string)
-	constructor(player: string, game?: Game)
+	constructor(player: Player)
+	constructor(player: Player, game?: Game)
 
-	constructor(player: string, game?: Game) {
+	constructor(player: Player, game?: Game) {
 		this.game = game
 		this.player = player
 		this.board = Array.from({ length: ROWS }, () => Array(COLS).fill('0'))
@@ -93,11 +96,17 @@ export class Board {
 				clearInterval(this.pieceMoveIntervalId)
 				if (this.setCurrentPiece() === false) {
 					this.filled = true
-					io.to(this.player).emit("game_over", this.getState())
+					
+					console.log("Game over")
+					io.to(this.player.socketId).emit("game_over", {
+						board: this.getState()
+					})
 				}
 				
 				return false
 			}
+
+			return false
 		}
 
 		return true
@@ -134,7 +143,9 @@ export class Board {
 			
 		piece.rotate()
 
-		io.to(this.player).emit("game_state", this.getState())
+		io.to(this.player.socketId).emit("game_state", {
+			board: this.getState()
+		})
 
 		return true
 	}
@@ -162,17 +173,22 @@ export class Board {
 		position.x += direction.x
 		position.y += direction.y
 
-		io.to(this.player).emit("game_state", this.getState())
+		io.to(this.player.socketId).emit("game_state", {
+			board: this.getState()
+		})
 
 		return true
 	}
 
-	private removeLines() {
+	private removeLines(): number {
 		const emptyRow = Array(COLS).fill("0")
 		const rowsRemaining = this.board.filter((row) => row.some((cell) => cell === "0"))
 		const rowsRemoved = ROWS - rowsRemaining.length
 		const rowsEmpty = Array.from({length: rowsRemoved}, () => emptyRow)
-		return [...rowsEmpty, ...rowsRemaining]
+		
+		this.rowsRemoved += rowsRemoved
+		this.board = [...rowsEmpty, ...rowsRemaining]
+		return rowsRemoved
 	}
 
 	private copyPieceToBoard(piece: Piece | undefined) {
@@ -204,12 +220,20 @@ export class Board {
 		}
 
 		const id = `game_${this.game.id}`
-		io.to(id).emit('game_preview', this.getShadow())
+		io.to(id).emit('game_preview', {
+			board: this.getShadow(),
+			player: this.player
+		})
 	}
 
 	private savePieceToBoard(piece: Piece) {
 		this.board = this.copyPieceToBoard(piece)
-		this.board = this.removeLines()
+		
+		if (this.removeLines()) {
+			io.to(this.player.socketId).emit("score", {
+				lines: this.rowsRemoved
+			})
+		}
 
 		this.notifyPlayers()
 	}
@@ -252,7 +276,10 @@ export class Board {
 		this.currentPiece = this.nextPiece
 		this.nextPiece = this.getNextPiece()
 
-		io.to(this.player).emit("game_state", this.getState())
+		io.to(this.player.socketId).emit("game_state", {
+			board: this.getState(),
+			nextPiece: this.nextPiece?.shape
+		})
 
 		this.pieceMoveIntervalId = setInterval(() => {
             this.movePieceDown()
@@ -262,12 +289,12 @@ export class Board {
 	}
 
 	public getShadow() {
-		return { board: this.board }
+		return this.board
 	}
 
 	public getState() {
 		const board = this.copyPieceToBoard(this.currentPiece)
-		return { board: board }
+		return board
 	}
 
 	public start() {

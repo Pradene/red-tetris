@@ -2,19 +2,21 @@ import React from 'react'
 import { Board, CellState } from './Board'
 
 interface GamePreviewProps {
-	gamePreviews: CellState[][][]
+	gamePreviews: Map < string, CellState[][]>
 }
 
 const GamePreviewList: React.FC<GamePreviewProps> = ({ gamePreviews }) => {
 	return (
 	  	<div className='game-preview-list'>
-			{gamePreviews.map((board: CellState[][], playerIndex: number) => (
-		  		<div key={playerIndex} className='game-preview'>
+			{Array.from(gamePreviews.entries()).map(([username, board], index) => (
+		  		<div key={index} className='game-preview'>
 					<div>
-						<h3>Player {playerIndex + 1}</h3>
-						<p>Score: </p>
+						<h3>{username}</h3>
+						<p>Score: 0</p>
 					</div>
-					<Board board={board} cellSize={4} />
+					<div style={{height: "100%", width: "100%"}}>
+						{/* <Board cols={10} rows={20} board={board} /> */}
+					</div>
 		  		</div>
 			))}
 	  	</div>

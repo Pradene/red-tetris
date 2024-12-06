@@ -1,44 +1,32 @@
-import React, { useState, useRef, useEffect } from "react"
-
-import socket from "../utils/socket"
+import React from "react"
 
 export type CellState = "J" | "L" | "O" | "T" | "I" | "Z" | "S" | "0"
 interface CellProps {
-	size: number,
 	color: string
 }
 
-const Cell: React.FC<CellProps> = ({size, color}) => {
+const Cell: React.FC<CellProps> = ({ color}) => {
 	return (
 		<div
 			style={{
-				width: `${size}px`,
-				height: `${size}px`,
 				backgroundColor: color,
 				border: 'none',
-				borderRadius: '2px',
-				transition: 'backgound-color 0.2s'
+				width: "100%",
+				position: "relative",
+				aspectRatio: "1",
 			}} 
 		/>
 	)
 }
 
-
-
-
-const COLS = 10
-const ROWS = 20
-
 interface BoardProps {
-    cellSize: number,
+	cols: number,
+	rows: number,
     board: CellState[][],
 }
 
-export const Board: React.FC<BoardProps> = ({cellSize, board}) => {
+export const Board: React.FC<BoardProps> = ({cols, rows, board}) => {
 
-    const size = cellSize
-    const width = size * COLS
-    const height = size * ROWS
 
 	const getColorForCell = (type: CellState) => {
 		// Define color mappings for each theme
@@ -50,29 +38,32 @@ export const Board: React.FC<BoardProps> = ({cellSize, board}) => {
 			"I": "darkcyan",
 			"Z": "darkred",
 			"S": "darkgreen",
-			"0": "red",
+			"0": "transparent",
 		}
 		
 		// Return color based on the current theme
-		return colorMapping[type] || "red"
+		return colorMapping[type] || "transparent"
 	}
 
 	return (
-		<div style={{
-			display: "grid",
-			gridTemplateColumns: `repeat(${COLS}, ${size}px)`,
-            height: height,
-            width: width,
-		}} >
-			{board.flatMap((row, rowIndex) =>
-				row.map((cell, colIndex) => (
-					<Cell
-			  			key={`${rowIndex * COLS + colIndex}`}
-			  			size={cellSize}
-			  			color={getColorForCell(cell)} // Pass the color dynamically based on the cell state
-					/>
-		  		))
-			)}
-	  </div>
+		<div style={{width: "auto", height: "100%"}}>
+
+			<div style={{
+				display: "grid",
+				height: "100%",
+				width: "100%",
+				gridTemplateColumns: `repeat(${cols}, 1fr)`,
+				gridTemplateRows: `repeat(${rows}, 1fr)`,
+			}} >
+				{board.flatMap((row, rowIndex) =>
+					row.map((cell, colIndex) => (
+						<Cell
+				  			key={`${rowIndex * cols + colIndex}`}
+				  			color={getColorForCell(cell)} // Pass the color dynamically based on the cell state
+						/>
+			  		))
+				)}
+			</div>
+		</div>
 	)
 }
