@@ -5,9 +5,6 @@ import Nav from './components/Nav'
 import Home from './pages/Home'
 import Game from './pages/Game'
 
-import './App.css'
-
-
 const App: React.FC = () => {
   return (
     <Router>
