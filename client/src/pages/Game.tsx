@@ -35,7 +35,7 @@ const Game: React.FC = () => {
 					socket.emit("rotate")
 					break
 				case "ArrowDown":
-					socket.emit("down")
+					socket.emit("moveToBottom")
 					break
 				default:
 					break
@@ -156,19 +156,19 @@ const Game: React.FC = () => {
 				<Board cols={COLS} rows={ROWS} board={board} />
 			    <div className="game-sidebar">
 				    <div className="next-piece">
-					    <div>
-						    <p>Next piece :</p>
-					    </div>
-					    <div style={{width: "50%"}}>
-						    <Board cols={nextPiece[0].length} rows={nextPiece.length} board={nextPiece} />
+					    <p>Next piece:</p>
+					    <div style={{width: "50%", margin: "auto"}}>
+						    <Board cols={4} rows={4} board={nextPiece} />
 					    </div>
 				    </div>
 				    <div className="score">
 				    	<div>
-				    		<p>Lines :</p>
+				    		<p>Lines:</p>
+							<div></div>
 				    	</div>
 				    	<div>
-				    		<p>Score :</p>
+				    		<p>Score:</p>
+							<div></div>
 				    	</div>
 				    </div>
 			    </div>

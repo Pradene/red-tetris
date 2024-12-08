@@ -47,12 +47,9 @@ code {
 
 .score  {
   width: 100%;
-  flex: 1;
 }
 
 .next-piece {
-  width: calc(100% - 4px);
-  margin: auto;
   display: flex;
   flex-direction: column;
   justify-content: center;

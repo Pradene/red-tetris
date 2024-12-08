@@ -28,6 +28,31 @@ interface BoardProps {
 export const Board: React.FC<BoardProps> = ({cols, rows, board}) => {
 
 
+	const standardizeBoard = (board: CellState[][]): CellState[][] => {
+		if (board.length == rows && board[0].length == cols) {
+			return board
+		}
+
+		const standardizedBoard = Array.from({length: rows}, () => 
+			Array(cols).fill("0")
+		)
+
+		const offsetX = Math.floor((cols - board[0].length) / 2)
+		const offsetY = Math.floor((rows - board.length) / 2)
+
+		for (let row = 0; row < board.length; row++) {
+			for (let col = 0; col < board[0].length; col++) {
+				standardizedBoard[row + offsetY][col + offsetX] = board[row][col]
+				
+			}
+		}
+
+		return standardizedBoard
+	}
+
+	const standardizedBoard = standardizeBoard(board)
+
+
 	const getColorForCell = (type: CellState) => {
 		// Define color mappings for each theme
 		const colorMapping: Record<CellState, string> = {
@@ -55,7 +80,7 @@ export const Board: React.FC<BoardProps> = ({cols, rows, board}) => {
 				gridTemplateColumns: `repeat(${cols}, 1fr)`,
 				gridTemplateRows: `repeat(${rows}, 1fr)`,
 			}} >
-				{board.map((row, rowIndex) =>
+				{standardizedBoard.map((row, rowIndex) =>
 					row.map((cell, colIndex) => (
 						<Cell
 				  			key={`${rowIndex * cols + colIndex}`}
