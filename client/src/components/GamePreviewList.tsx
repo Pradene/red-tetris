@@ -14,7 +14,7 @@ const GamePreviewList: React.FC<GamePreviewProps> = ({ gamePreviews }) => {
 						<h3 style={{margin: "0"}}>{username}:</h3>
 						<p style={{margin: "0"}}>0 points</p>
 					</div>
-					<div style={{width: "40px"}}>
+					<div style={{width: "40px", marginLeft: "auto"}}>
 						<Board cols={10} rows={20} board={board} />
 					</div>
 		  		</div>

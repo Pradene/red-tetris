@@ -39,7 +39,7 @@ export class Game {
         }
 
         this.players.push(player)
-        const board = new Board(player, this)
+        const board = new Board(this, player)
         this.boards.set(socketId, board)
     }
     
@@ -60,7 +60,7 @@ export class Game {
 
     public downPlayer(socketId: string) {
         const board = this.boards.get(socketId)
-        if (board?.filled) {
+        if (board?.over) {
             return
         }
         
@@ -69,7 +69,7 @@ export class Game {
 
     public movePlayer(socketId: string, direction: {x: number, y:number}) {
         const board = this.boards.get(socketId)
-        if (board?.filled) {
+        if (board?.over) {
             return
         }
 
@@ -78,7 +78,7 @@ export class Game {
 
     public rotatePlayer(socketId: string) {
         const board = this.boards.get(socketId)
-        if (board?.filled) {
+        if (board?.over) {
             return
         }
 
@@ -86,12 +86,14 @@ export class Game {
     }
 
     private createPiece(count: number = 1): void {
-        for (let index = 0; index < count; index++) {
+        for (let i = 0; i < count; i++) {
             this.pile.push(Piece.random())
         }
     }
 
     public getPieceByIndex(index: number): Piece {
+        index = Math.abs(index)
+
         while (index >= this.pile.length) {
             this.createPiece()
         }

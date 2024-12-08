@@ -55,7 +55,7 @@ export const Board: React.FC<BoardProps> = ({cols, rows, board}) => {
 				gridTemplateColumns: `repeat(${cols}, 1fr)`,
 				gridTemplateRows: `repeat(${rows}, 1fr)`,
 			}} >
-				{board.flatMap((row, rowIndex) =>
+				{board.map((row, rowIndex) =>
 					row.map((cell, colIndex) => (
 						<Cell
 				  			key={`${rowIndex * cols + colIndex}`}
