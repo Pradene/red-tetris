@@ -9,17 +9,18 @@ const COLS: number = 10
 const ROWS: number = 20
 
 export class Board {
-	game: Game
-	player: Player
-	pile: string[][]
-	currentPiece: Piece
-	nextPiece: Piece
-	gamePieceIndex: number
-	over: Boolean = false
-	rowsRemoved: number = 0
+	private game: Game
+	private player: Player
+	private pile: string[][]
+	private currentPiece: Piece
+	private nextPiece: Piece
+	private gamePieceIndex: number
+	private score: number = 0
+	private rowsRemoved: number = 0
+	public  over: Boolean = false
 
-    pieceMoveIntervalId: | NodeJS.Timeout | undefined = undefined
-    pieceMoveInterval: number = 500
+    private pieceMoveIntervalId: | NodeJS.Timeout | undefined = undefined
+    private pieceMoveInterval: number = 500
 
 	constructor(game: Game, player: Player) {
 		this.game = game
@@ -62,6 +63,7 @@ export class Board {
 		}
 
 		const rotatedShape = piece.getRotatedShape()
+
 		return this.canBePlaced(position, rotatedShape)
 	}
 
@@ -122,7 +124,7 @@ export class Board {
 			
 		piece.rotate()
 
-		io.to(this.player.socketId).emit("game_state", {
+		this.game.sendGameStateUpdate(this.player.socketId, {
 			board: this.getState()
 		})
 
@@ -144,7 +146,7 @@ export class Board {
 		position.x += direction.x
 		position.y += direction.y
 
-		io.to(this.player.socketId).emit("game_state", {
+		this.game.sendGameStateUpdate(this.player.socketId, {
 			board: this.getState()
 		})
 
@@ -185,24 +187,32 @@ export class Board {
 		return pile
 	}
 
-	private notifyPlayers(): void {
-		const id = `game_${this.game.id}`
-		io.to(id).emit('game_preview', {
-			board: this.getShadow(),
-			player: this.player
-		})
+	private updateScore(removedLines: number): void {
+		const baseScore = 100
+		const lineMultiplier = Math.pow(2, removedLines - 1)
+		const score = baseScore * lineMultiplier
+
+		this.score += score
 	}
 
 	private savePieceToBoard(piece: Piece): void {
 		this.pile = this.copyPieceToBoard(piece)
 		
-		if (this.removeLines()) {
-			io.to(this.player.socketId).emit("score", {
-				lines: this.rowsRemoved
+		// Send preview to all users of the game
+		this.game.sendGamePreview({
+			player: this.player.username,
+			board: this.getPreview()
+		})
+		
+		const removedLines = this.removeLines()
+		if (removedLines > 0) {
+			this.updateScore(removedLines)
+
+			this.game.sendScoreUpdate({
+				player: this.player.username,
+				score: this.score
 			})
 		}
-
-		this.notifyPlayers()
 	}
 
 	private getNextPiece(): Piece {
@@ -226,9 +236,9 @@ export class Board {
 		this.currentPiece = this.nextPiece
 		this.nextPiece = this.getNextPiece()
 
-		io.to(this.player.socketId).emit("game_state", {
+		this.game.sendGameStateUpdate(this.player.socketId, {
 			board: this.getState(),
-			nextPiece: this.nextPiece?.shape
+			nextPiece: this.nextPiece.shape
 		})
 
 		this.startPieceInterval()
@@ -236,13 +246,7 @@ export class Board {
 		return true
 	}
 
-	private startPieceInterval(): void {
-		this.pieceMoveIntervalId = setInterval(() => {
-            this.movePieceDown()
-        }, this.pieceMoveInterval)
-	}
-
-	public getShadow(): string[][] {
+	public getPreview(): string[][] {
 		let tmp = Array(COLS).fill("0")
 
 		const shadow = this.pile.map((row) => {
@@ -261,6 +265,12 @@ export class Board {
 	public getState(): string[][] {
 		const board = this.copyPieceToBoard(this.currentPiece)
 		return board
+	}
+	
+	private startPieceInterval(): void {
+		this.pieceMoveIntervalId = setInterval(() => {
+            this.movePieceDown()
+        }, this.pieceMoveInterval)
 	}
 
 	public start(): void {

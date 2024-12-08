@@ -5,7 +5,7 @@ interface GamePreviewProps {
 	gamePreviews: Map < string, CellState[][]>
 }
 
-const GamePreviewList: React.FC<GamePreviewProps> = ({ gamePreviews }) => {
+const GamePreviewList: React.FC<GamePreviewProps> = ({ gamePreviews }) => {	
 	return (
 	  	<div className='game-preview-list'>
 			{Array.from(gamePreviews.entries()).map(([username, board], index) => (

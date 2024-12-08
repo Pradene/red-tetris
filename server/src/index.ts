@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from "express"
+import express, { Request, Response } from "express"
 import path from "path"
 import dotenv from "dotenv"
 import http from "http"
@@ -15,7 +15,8 @@ const server = http.createServer(app)
 export const io = new Server(server, {
     cors: {
         origin: "http://localhost:3000",
-        methods: ["GET", "POST"]
+        methods: ["GET", "POST"],
+        credentials: true
     }
 })
 
@@ -61,7 +62,6 @@ io.on('connection', (socket) => {
     })
 
     socket.on('move', (data) => {
-        console.log("move", data)
         if (data.direction === undefined) {
             return
         }

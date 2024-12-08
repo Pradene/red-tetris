@@ -20,6 +20,8 @@ export class Game {
         this.pile = []
         this.players = []
         this.boards = new Map()
+
+        this.initializePile()
     }
 
     private initializePile(): void {
@@ -43,11 +45,35 @@ export class Game {
         this.boards.set(socketId, board)
     }
 
+    public getPlayerByUsername(username: string): Player | undefined {
+        return this.players.find((player) => player.username === username)
+    }
+
+    public getPlayerBySocketId(socketId: string): Player | undefined {
+        return this.players.find((player) => player.socketId === socketId)
+    }
+
+    public sendGameStateUpdate(socketId: string, data: any): void {
+        const player = this.getPlayerBySocketId(socketId)
+        if (player === undefined) {
+            return
+        }
+
+        io.to(player.socketId).emit("game_update", data)
+    }
+
+    public sendGamePreview(data: any) {
+        io.to(`game_${this.id}`).emit("game_preview", data)
+    }
+
+    public sendScoreUpdate(data: any) {
+        io.to(`game_${this.id}`).emit("score_update", data)
+    }
+
     public start() {
         io.to(`game_${this.id}`).emit("game_started", {
             gameId: this.id,
             players: this.players,
-            message: "Game has started"
         })
 
         this.initializePile()

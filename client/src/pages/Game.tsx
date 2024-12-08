@@ -71,6 +71,8 @@ const Game: React.FC = () => {
 		Array.from({length: ROWS}, () => Array(COLS).fill("0"))
 	)
 
+	const [ score, setScore ] = useState<number>(0)
+
 	const [nextPiece, setNextPiece ] = useState<CellState[][]>(
 		Array.from({length: 2}, () => Array(4).fill("0"))
 	)
@@ -81,7 +83,6 @@ const Game: React.FC = () => {
 		s.current.connect()
   
 		s.current.on("connect", () => {
-			console.log("Connected to socket.io server:", socket.id)
 	  	})
 		
 	  	s.current.on("game_started", (data) => {
@@ -95,7 +96,8 @@ const Game: React.FC = () => {
 			})
 	  	})
   
-	 	s.current.on("game_state", (data) => {
+	 	s.current.on("game_update", (data) => {
+
 			if (data.nextPiece) {
 				setNextPiece(data.nextPiece)
 			}
@@ -104,15 +106,14 @@ const Game: React.FC = () => {
 		})
 
 		s.current.on("game_preview", (data) => {
-			addPreview(data.player.username, data.board)
+			addPreview(data.player, data.board)
 		})
 
 	  	s.current.on("game_over", (data) => {
-			console.log("Game over:", data)
 	 	})
 
-		 s.current.on("score", (data) => {
-			console.log("Score:", data)
+		 s.current.on("score_update", (data) => {
+			setScore(data.score)
 	 	})
   
 	  	s.current.emit("create_game", "Hello you")
@@ -121,31 +122,6 @@ const Game: React.FC = () => {
 			s.current.disconnect()
 	  	}
 	}, [])
-
-
-
-	const [cellSize, setCellSize] = useState(0)
-
-	useEffect(() => {
-		const resizeHandler = () => {
-		  // Calculate available space for the game board
-		  	const size = Math.min(
-				window.innerWidth / COLS,
-				window.innerHeight / ROWS
-			)
-	
-		  // Calculate the cell size based on the smaller dimension
-		  	const maxCellSize = Math.floor(size)
-		  	setCellSize(maxCellSize)
-		}
-	
-		// Initial calculation and resize listener
-		resizeHandler()
-		window.addEventListener("resize", resizeHandler)
-		return () => {
-			window.removeEventListener("resize", resizeHandler)
-		}
-	  }, [])
 
 	return (
 		<div className="game">
@@ -168,7 +144,7 @@ const Game: React.FC = () => {
 				    	</div>
 				    	<div>
 				    		<p>Score:</p>
-							<div></div>
+							<p>{score}</p>
 				    	</div>
 				    </div>
 			    </div>
