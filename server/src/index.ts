@@ -67,17 +67,17 @@ io.on('connection', (socket) => {
         }
 
         const game = games.get(id)
-        game?.movePlayer(socket.id, data.direction)
+        game?.move(socket.id, data.direction)
     })
 
     socket.on('rotate', () => {
         const game = games.get(id)
-        game?.rotatePlayer(socket.id)
+        game?.rotate(socket.id)
     })
 
-    socket.on('down', () => {
+    socket.on('moveToBottom', () => {
         const game = games.get(id)
-        game?.downPlayer(socket.id)
+        game?.moveToBottom(socket.id)
     })
     
     socket.on('disconnect', () => {

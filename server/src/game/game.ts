@@ -42,7 +42,7 @@ export class Game {
         const board = new Board(this, player)
         this.boards.set(socketId, board)
     }
-    
+
     public start() {
         io.to(`game_${this.id}`).emit("game_started", {
             gameId: this.id,
@@ -58,7 +58,7 @@ export class Game {
         }
     }
 
-    public downPlayer(socketId: string) {
+    public moveToBottom(socketId: string) {
         const board = this.boards.get(socketId)
         if (board?.over) {
             return
@@ -67,7 +67,7 @@ export class Game {
         board?.movePieceToBottom()
     }
 
-    public movePlayer(socketId: string, direction: {x: number, y:number}) {
+    public move(socketId: string, direction: {x: number, y:number}) {
         const board = this.boards.get(socketId)
         if (board?.over) {
             return
@@ -76,7 +76,7 @@ export class Game {
         board?.movePiece(direction)
     }
 
-    public rotatePlayer(socketId: string) {
+    public rotate(socketId: string) {
         const board = this.boards.get(socketId)
         if (board?.over) {
             return
