@@ -42,42 +42,78 @@ app.get('*', (req: Request, res: Response) => {
     }
 })
 
-const games: Map<number, Game> = new Map()
-let gameIdCounter = 0
+const games: Map<string, Game> = new Map()
 
 io.on('connection', (socket) => {
     console.log(`A new user connected: ${socket.id}`)
-    const id = ++gameIdCounter
 
-    socket.join(`game_${id}`)
+    socket.on('join_game', (data) => {
+        console.log("data:", data)
 
-    socket.on('create_game', () => {
-        console.log(`Game created with ID: ${id}`)
-
-        const game = new Game(id)
-        games.set(id, game)
-
-        game.addPlayer(socket.id)
-        game.start()
-    })
-
-    socket.on('move', (data) => {
-        if (data.direction === undefined) {
+        const { roomName, username } = data
+        if (username === undefined || roomName === undefined) {
+            console.error("Error: you need to provide a username and a room name to join")
             return
         }
 
-        const game = games.get(id)
-        game?.move(socket.id, data.direction)
+        let game = games.get(roomName)
+        if (game === undefined) {
+            game = new Game(roomName)
+            console.log(`Game ${roomName} created`)
+            games.set(roomName, game)
+        }
+        
+        socket.join(roomName)
+        game.addPlayer(username, socket.id)
+        game.start()
     })
 
-    socket.on('rotate', () => {
-        const game = games.get(id)
-        game?.rotate(socket.id)
+    socket.on("quit_game", (data) => {
+        console.log("Quit game")
+        const { roomName } = data
+        if (roomName === undefined) {
+            return
+        }
+
+        const game = games.get(roomName)
+        game?.removePlayer(socket.id)
+
+        if (game?.players.size === 0) {
+            games.delete(roomName)
+        }
     })
 
-    socket.on('moveToBottom', () => {
-        const game = games.get(id)
-        game?.moveToBottom(socket.id)
+    socket.on('move', (data) => {
+        const { roomName, direction } = data
+        if (roomName === undefined || direction === undefined) {
+            return
+        }
+
+        const game = games.get(roomName)
+        const player = game?.getPlayerBySocketId(socket.id)
+        player?.move(data.direction)
+    })
+
+    socket.on('rotate', (data) => {
+        const { roomName } = data
+        if (roomName === undefined) {
+            return
+        }
+
+        const game = games.get(roomName)
+        const player = game?.getPlayerBySocketId(socket.id)
+        player?.rotate()
+    })
+
+    socket.on('moveToBottom', (data) => {
+        const { roomName } = data
+        if (roomName === undefined) {
+            return
+        }
+        
+        const game = games.get(roomName)
+        const player = game?.getPlayerBySocketId(socket.id)
+        player?.moveToBottom()
     })
     
     socket.on('disconnect', () => {

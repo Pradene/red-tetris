@@ -1,9 +1,6 @@
 import { Game } from "./game"
 import { Piece } from "./piece"
-
-import { io } from ".."
-
-import { Player } from "./game"
+import { Player } from "./player"
 
 const COLS: number = 10
 const ROWS: number = 20
@@ -15,7 +12,6 @@ export class Board {
 	private currentPiece: Piece
 	private nextPiece: Piece
 	private gamePieceIndex: number
-	private score: number = 0
 	private rowsRemoved: number = 0
 	public  over: Boolean = false
 
@@ -89,10 +85,6 @@ export class Board {
 			if (this.setCurrentPiece() === false) {
 				console.log("Game over")
 				this.over = true
-					
-				io.to(this.player.socketId).emit("game_over", {
-					board: this.getState()
-				})
 			}
 
 			return false
@@ -121,10 +113,10 @@ export class Board {
 		if (this.canRotatePiece(piece) === false) {
 			return false
 		}
-			
+
 		piece.rotate()
 
-		this.game.sendGameStateUpdate(this.player.socketId, {
+		this.game.sendGameStateUpdate(this.player, {
 			board: this.getState()
 		})
 
@@ -146,7 +138,7 @@ export class Board {
 		position.x += direction.x
 		position.y += direction.y
 
-		this.game.sendGameStateUpdate(this.player.socketId, {
+		this.game.sendGameStateUpdate(this.player, {
 			board: this.getState()
 		})
 
@@ -187,14 +179,6 @@ export class Board {
 		return pile
 	}
 
-	private updateScore(removedLines: number): void {
-		const baseScore = 100
-		const lineMultiplier = Math.pow(2, removedLines - 1)
-		const score = baseScore * lineMultiplier
-
-		this.score += score
-	}
-
 	private savePieceToBoard(piece: Piece): void {
 		this.pile = this.copyPieceToBoard(piece)
 		
@@ -206,11 +190,12 @@ export class Board {
 		
 		const removedLines = this.removeLines()
 		if (removedLines > 0) {
-			this.updateScore(removedLines)
+			this.player.updateScore(removedLines)
 
 			this.game.sendScoreUpdate({
 				player: this.player.username,
-				score: this.score
+				score: this.player.score,
+				lines: this.rowsRemoved
 			})
 		}
 	}
@@ -236,7 +221,7 @@ export class Board {
 		this.currentPiece = this.nextPiece
 		this.nextPiece = this.getNextPiece()
 
-		this.game.sendGameStateUpdate(this.player.socketId, {
+		this.game.sendGameStateUpdate(this.player, {
 			board: this.getState(),
 			nextPiece: this.nextPiece.shape
 		})
@@ -273,7 +258,32 @@ export class Board {
         }, this.pieceMoveInterval)
 	}
 
+	private stopPieceInterval(): void {
+		clearInterval(this.pieceMoveIntervalId)
+	}
+
 	public start(): void {
+		if (this.over === true) {
+			return
+		}
+
+		this.stopPieceInterval()
 		this.startPieceInterval()
+	}
+
+	public stop(): void {
+		this.stopPieceInterval()
+	}
+
+	public reset(): void {
+		this.stopPieceInterval()
+		
+		this.over = false
+		this.rowsRemoved = 0
+		this.gamePieceIndex = 0
+		this.currentPiece = this.getNextPiece()
+		this.nextPiece = this.getNextPiece()
+
+		this.pile = Array.from({ length: ROWS }, () => Array(COLS).fill('0'))
 	}
 }
