@@ -12,9 +12,13 @@ export class Player {
     }
 
     public updateScore(removedLines: number): void {
-		const baseScore = 100
-		const lineMultiplier = Math.pow(2, removedLines - 1)
-		const score = baseScore * lineMultiplier
+        if (removedLines < 1 || removedLines > 4) {
+            return
+        }
+
+        const baseScore = 100
+		const score = ((baseScore * 2 * removedLines) - baseScore)
+        + (Math.floor(removedLines / 4) * baseScore)
 
 		this.score += score
 	}
@@ -43,7 +47,15 @@ export class Player {
         this.board.rotatePiece()
     }
 
+    public start() {
+        this.board.start()
+    }
+
     public stop() {
         this.board.stop()
+    }
+
+    public restart() {
+        this.board.restart()
     }
 }

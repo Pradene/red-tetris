@@ -49,7 +49,7 @@ export class Board {
 					((ny >= 0) === (ny >= 0 && this.pile[ny][nx] === '0'))
 				)
 			})
-		})	
+		})
 	}
 
 	private canRotatePiece(piece: Piece ): Boolean {
@@ -182,22 +182,22 @@ export class Board {
 	private savePieceToBoard(piece: Piece): void {
 		this.pile = this.copyPieceToBoard(piece)
 		
-		// Send preview to all users of the game
-		this.game.sendGamePreview({
-			player: this.player.username,
-			board: this.getPreview()
-		})
-		
 		const removedLines = this.removeLines()
 		if (removedLines > 0) {
 			this.player.updateScore(removedLines)
-
+			
 			this.game.sendScoreUpdate({
 				player: this.player.username,
 				score: this.player.score,
 				lines: this.rowsRemoved
 			})
 		}
+		
+		// Send preview to all users of the game
+		this.game.sendGamePreview({
+			player: this.player.username,
+			board: this.getPreview()
+		})
 	}
 
 	private getNextPiece(): Piece {
@@ -275,9 +275,9 @@ export class Board {
 		this.stopPieceInterval()
 	}
 
-	public reset(): void {
+	public restart(): void {
 		this.stopPieceInterval()
-		
+
 		this.over = false
 		this.rowsRemoved = 0
 		this.gamePieceIndex = 0
@@ -285,5 +285,6 @@ export class Board {
 		this.nextPiece = this.getNextPiece()
 
 		this.pile = Array.from({ length: ROWS }, () => Array(COLS).fill('0'))
+		this.start()
 	}
 }

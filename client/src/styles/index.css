@@ -7,118 +7,44 @@
 
 body {
   margin: 0;
+  color: white;
+  background-color: black;
   font-family: 'Orbitron-Bold';
+  font-size: 0.8rem;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-nav {
-  position: absolute;
+button {
+  font-family: 'Orbitron-Bold';
+  color: white;
+  background-color: transparent;
+  outline: none;
+  border: none;
+  font-size: 0.8rem;
+  cursor: pointer;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+.button {
+  background-color: white;
+  color: black;
 }
 
-.game {
-  display: flex;
-  background-color: black;
-  gap: 12px;
-  width: calc(100% - 48px);
-  height: calc(100vh - 48px);
-  padding: 24px;
-  grid-template-rows: 1fr; /* Adjust fractions as needed */
-  grid-template-columns: auto 1fr; /* Adjust fractions as needed */
-  gap: 10px;
+input {
+  outline: none;
+  border: none;
+  color: white;
+  padding: 0.25rem 0rem;
+  border-bottom: 1px solid white;
+  background-color: transparent;
+  font-family: 'Orbitron-Bold';
 }
 
-.game-sidebar {
-  height: calc(100% - 24px);
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  background-color: lightgray;
-  gap: 12px;
-  border-radius: 12px;
-  padding: 12px;
+input::placeholder {
+  color: white;
 }
 
-.score  {
-  width: 100%;
-}
-
-.next-piece {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.game-board {
-  flex: 2;
-  gap: 12px;
+#root {
   height: 100%;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-}
-
-.game-previews {
-  flex: 1;
-  min-height: 96px;
-  background-color: lightgray;
-  padding: 12px;
-  border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  overflow-y: scroll;
-  overflow-x: hidden;
-}
-
-.game-preview-list {
-  min-height: 100%;
   width: 100%;
-  gap: 12px;
-  margin: auto;
-  display: flex;
-  flex-direction: column;
-}
-
-.game-preview {
-  width: auto;
-  padding: 12px;
-  background-color: beige;
-  display: flex;
-  gap: 12px;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  border-radius: 12px;
-}
-
-.game-previews::-webkit-scrollbar {
-  display: none;
-}
-
-@media (max-width: 768px) {
-  .game {
-    flex-direction: column-reverse;
-  }
-
-  .game-previews {
-    flex: 0 1 auto;
-    overflow-x: scroll;
-    overflow-y: hidden;
-  }
-
-  .game-preview-list {
-    flex-direction: row;
-  }
-
-  .game-preview {
-    flex-direction: column;
-  }
 }

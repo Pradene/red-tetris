@@ -29,7 +29,7 @@ export const Board: React.FC<BoardProps> = ({cols, rows, board}) => {
 
 
 	const standardizeBoard = (board: CellState[][]): CellState[][] => {
-		if (board.length == rows && board[0].length == cols) {
+		if (board.length === rows && board[0].length === cols) {
 			return board
 		}
 
@@ -72,7 +72,6 @@ export const Board: React.FC<BoardProps> = ({cols, rows, board}) => {
 
 	return (
 		<div style={{width: "auto", height: "100%"}}>
-
 			<div style={{
 				display: "grid",
 				height: "100%",

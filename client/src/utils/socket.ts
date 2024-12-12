@@ -1,9 +1,28 @@
-import { io } from "socket.io-client"
+import { io, Socket } from "socket.io-client"
 
-const SOCKET_URL = "http://localhost:5000" // Replace with your backend URL if necessary
+let socket: Socket | undefined = undefined
 
-const socket = io(SOCKET_URL, {
-    autoConnect: false, // Prevents automatic connection on import
-})
 
-export default socket
+export const connectSocket = () => {
+    const url = "http://localhost:5000"
+    socket = io(url, {
+        auth: {
+            token: "token"
+        }
+    })
+    
+    console.log(socket)
+
+    return socket
+}
+
+export const getSocket = () => {
+    return socket
+}
+
+export const disconnectSocket = () => {
+    if (socket !== undefined) {
+        socket.disconnect()
+        socket = undefined
+    }
+}

@@ -1,9 +1,12 @@
 import React, { useState, useRef, useEffect } from "react"
 
-import socket from "../utils/socket"
+import { disconnectSocket, getSocket } from "../utils/socket"
 
 import { Board, CellState } from "../components/Board"
 import GamePreviewList from "../components/GamePreviewList"
+
+import styles from "./Game.module.css"
+
 
 type Player = {
 	socketId: string,
@@ -13,10 +16,33 @@ type Player = {
 const ROWS = 20
 const COLS = 10
 
-const ROOM_NAME = "Hello"
-
 const Game: React.FC = () => {
+
+	const [ lines, setLines ] = useState<number>(0)
+	const [ score, setScore ] = useState<number>(0)
+
 	const [ keyPressed, setKeyPressed ] = useState<Boolean>(false)
+	const [ previews, setPreviews ] = useState<Map <string, CellState[][]> >(new Map())
+	const addPreview = (username: string, board: CellState[][]) => {
+		setPreviews((prev) => {
+			const updated = new Map(prev)
+			updated.set(username, board)
+			return updated
+		})
+	}
+	
+	const [ board, setBoard ] = useState<CellState[][]>(
+		Array.from({length: ROWS}, () => Array(COLS).fill("0"))
+	)
+
+
+	const [nextPiece, setNextPiece ] = useState<CellState[][]>(
+		Array.from({length: 2}, () => Array(4).fill("0"))
+	)
+
+	const urlParams = window.location.pathname.split("/") 
+	const roomName = urlParams[1]
+	const playerName = urlParams[2]
 
 	useEffect(() => {
 		const handleKeyPressed = (event: KeyboardEvent) => {
@@ -24,20 +50,31 @@ const Game: React.FC = () => {
 				return
 			}
 
+			const socket = getSocket()
+			if (socket === undefined) {
+				return
+			}
+
 			setKeyPressed(true)
 			
 			switch (event.key) {
+				case "s":
+					socket.emit("start_game", {roomName: roomName})
+					break
 				case "ArrowLeft":
-					socket.emit("move", {roomName: ROOM_NAME, direction: {x: -1, y: 0}})
+					socket.emit("move", {roomName: roomName, direction: {x: -1, y: 0}})
 					break
 				case "ArrowRight":
-					socket.emit("move", {roomName: ROOM_NAME, direction: {x: 1, y: 0}})
+					socket.emit("move", {roomName: roomName, direction: {x: 1, y: 0}})
 					break
 				case "ArrowUp":
-					socket.emit("rotate", {roomName: ROOM_NAME})
+					socket.emit("rotate", {roomName: roomName})
 					break
 				case "ArrowDown":
-					socket.emit("moveToBottom", {roomName: ROOM_NAME})
+					socket.emit("moveToBottom", {roomName: roomName})
+					break
+				case "r":
+					socket.emit("restart_game", {roomName: roomName})
 					break
 				default:
 					break
@@ -57,41 +94,15 @@ const Game: React.FC = () => {
 		}
 	}, [keyPressed])
 
-	// Board initialization
-	// Fill all cell from the board with empty state ("0")
-	const [ previews, setPreviews ] = useState<Map <string, CellState[][]> >(new Map())
-	const addPreview = (username: string, board: CellState[][]) => {
-		setPreviews((prev) => {
-			const updated = new Map(prev)
-			updated.set(username, board)
-			return updated
-		})
-	}
-	
-	
-	const [ board, setBoard ] = useState<CellState[][]>(
-		Array.from({length: ROWS}, () => Array(COLS).fill("0"))
-	)
-
-	const [ score, setScore ] = useState<number>(0)
-	const [ lines, setLines ] = useState<number>(0)
-
-	const [nextPiece, setNextPiece ] = useState<CellState[][]>(
-		Array.from({length: 2}, () => Array(4).fill("0"))
-	)
-
-	const s = useRef(socket)
-
 	useEffect(() => {
-		if (s.current.connected === false) {
-			s.current.connect()
+
+		const socket = getSocket()
+		console.log(socket)
+		if (socket === undefined) {
+			return
 		}
-  
-		s.current.on("connect", () => {
-			console.log("Connected to socket")
-		})
 		
-	  	s.current.on("game_started", (data) => {
+	  	socket.on("game_started", (data) => {
 			const players = data.players
 			if (players === undefined) {
 				return
@@ -102,7 +113,7 @@ const Game: React.FC = () => {
 			})
 	  	})
   
-	 	s.current.on("game_update", (data) => {
+	 	socket.on("game_update", (data) => {
 
 			if (data.nextPiece) {
 				setNextPiece(data.nextPiece)
@@ -111,29 +122,30 @@ const Game: React.FC = () => {
 			setBoard(data.board)
 		})
 
-		s.current.on("game_preview", (data) => {
+		socket.on("game_preview", (data) => {
 			addPreview(data.player, data.board)
 		})
 
-	  	s.current.on("game_over", (data) => {
+	  	socket.on("game_over", (data) => {
 			console.log("Game over")
 	 	})
 
-		 s.current.on("score_update", (data) => {
+		 socket.on("score_update", (data) => {
 			console.log(data)
 			setScore(data.score)
 			setLines(data.lines)
 	 	})
   
-	  	s.current.emit("join_game", {
-			roomName: ROOM_NAME,
+		console.log("sending join game")
+	  	socket.emit("join_game", {
+			roomName: roomName,
 			username: "Liam"
 		})
 
 		const handleBeforeUnload = () => {
-			s.current.emit("quit_game", { roomName: ROOM_NAME})
-			if (s.current.connected === true) {
-				s.current.disconnect()
+			socket.emit("quit_game", { roomName: roomName})
+			if (socket.connected === true) {
+				socket.disconnect()
 			}
 		}
 
@@ -141,37 +153,35 @@ const Game: React.FC = () => {
   
 	  	return () => {
 			window.removeEventListener("beforeunload", handleBeforeUnload)
-			s.current.emit("quit_game", { roomName: ROOM_NAME})
-			if (s.current.connected === true) {
-				s.current.disconnect()
-			}
+			socket.emit("quit_game", { roomName: roomName})
+			disconnectSocket()
 	  	}
 	}, [])
 
 	return (
-		<div className="game">
-			<div className="game-previews">
+		<div className={styles.game}>
+			<div className={styles.gamePreviews}>
 				<GamePreviewList gamePreviews={previews} />
 			</div>
-			<div className="game-board">
+			<div className={styles.gameBoard}>
 				<Board cols={COLS} rows={ROWS} board={board} />
-			    <div className="game-sidebar">
-				    <div className="next-piece">
-					    <p>Next piece:</p>
-					    <div style={{width: "50%", margin: "auto"}}>
-						    <Board cols={4} rows={4} board={nextPiece} />
-					    </div>
+			</div>
+			<div className={styles.gameSidebar}>
+			    <div className={styles.nextPiece}>
+				    <p>Next piece:</p>
+				    <div style={{width: "50%", maxWidth: "60px"}}>
+					    <Board cols={4} rows={4} board={nextPiece} />
 				    </div>
-				    <div className="score">
-				    	<div style={{display: "flex", justifyContent: "space-between"}}>
-				    		<p>Lines:</p>
-							<p>{lines}</p>
-				    	</div>
-				    	<div style={{display: "flex", justifyContent: "space-between"}}>
-				    		<p>Score:</p>
-							<p>{score}</p>
-				    	</div>
-				    </div>
+			    </div>
+			    <div className={styles.score}>
+			    	<div style={{display: "flex", justifyContent: "space-between"}}>
+			    		<p>Lines:</p>
+						<p>{lines}</p>
+			    	</div>
+			    	<div style={{display: "flex", justifyContent: "space-between"}}>
+			    		<p>Score:</p>
+						<p>{score}</p>
+			    	</div>
 			    </div>
 			</div>
 		</div>

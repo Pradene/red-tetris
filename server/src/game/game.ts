@@ -1,7 +1,7 @@
 import { Piece } from "./piece"
 import { Player } from "./player"
 
-import { io } from "../index"
+import { io } from "../socket/io"
 
 export class Game {
     id: string
@@ -24,8 +24,6 @@ export class Game {
     }
 
     public addPlayer(username: string, socketId: string): void {
-        console.log(`User ${socketId} try to connect to game`)
-
         if (this.started === true) {
             return
         }
@@ -90,6 +88,23 @@ export class Game {
         })
     }
 
+    private createPiece(count: number = 1): void {
+        for (let i = 0; i < count; i++) {
+            this.pile.push(Piece.random())
+        }
+    }
+
+    public getPieceByIndex(index: number): Piece {
+        // Prevent piece index from being negative or too high
+        index = Math.abs(index) % 2000
+
+        while (index >= this.pile.length) {
+            this.createPiece()
+        }
+
+        return this.pile[index].clone()
+    }
+
     public start() {
         if (this.started === true) {
             return
@@ -99,23 +114,24 @@ export class Game {
         this.sendGameStarted()
 
         for (const [player] of this.players) {
-            player.board.start()
+            player.start()
         }
     }
 
-    private createPiece(count: number = 1): void {
-        for (let i = 0; i < count; i++) {
-            this.pile.push(Piece.random())
+    public restart() {
+        for (const [player] of this.players) {
+            player.restart()
         }
     }
 
-    public getPieceByIndex(index: number): Piece {
-        index = Math.abs(index)
-
-        while (index >= this.pile.length) {
-            this.createPiece()
+    public end() {
+        for (const [player] of this.players) {
+            player.stop()
         }
 
-        return this.pile[index]
+        this.players.clear()
+        this.spectators.clear()
+        this.pile = []
+
     }
 }
