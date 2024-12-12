@@ -3,8 +3,10 @@ import http from "http"
 import cors from "cors"
 import path from "path"
 
+import cookieParser from "cookie-parser"
+
 import "./config/dotenv"
-import authRoutes from "./api/auth"
+import authRoutes from "./api/auth/auth"
 import initializeDb from "./db/utils/init"
 
 initializeDb()
@@ -12,6 +14,7 @@ initializeDb()
 const app = express()
 
 app.use(express.json())
+app.use(cookieParser())
 app.use(cors({
     origin: "http://localhost:3000",
     methods: ["GET", "POST"],

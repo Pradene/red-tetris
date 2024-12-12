@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react"
-
-import { disconnectSocket, getSocket } from "../utils/socket"
+import { Socket } from "socket.io-client"
+import { getSocket, sendSocketMessage } from "../utils/socket"
 
 import { Board, CellState } from "../components/Board"
 import GamePreviewList from "../components/GamePreviewList"
@@ -59,22 +59,22 @@ const Game: React.FC = () => {
 			
 			switch (event.key) {
 				case "s":
-					socket.emit("start_game", {roomName: roomName})
+					socket?.emit("start_game", {roomName: roomName})
 					break
 				case "ArrowLeft":
-					socket.emit("move", {roomName: roomName, direction: {x: -1, y: 0}})
+					socket?.emit("move", {roomName: roomName, direction: {x: -1, y: 0}})
 					break
 				case "ArrowRight":
-					socket.emit("move", {roomName: roomName, direction: {x: 1, y: 0}})
+					socket?.emit("move", {roomName: roomName, direction: {x: 1, y: 0}})
 					break
 				case "ArrowUp":
-					socket.emit("rotate", {roomName: roomName})
+					socket?.emit("rotate", {roomName: roomName})
 					break
 				case "ArrowDown":
-					socket.emit("moveToBottom", {roomName: roomName})
+					socket?.emit("moveToBottom", {roomName: roomName})
 					break
 				case "r":
-					socket.emit("restart_game", {roomName: roomName})
+					socket?.emit("restart_game", {roomName: roomName})
 					break
 				default:
 					break
@@ -95,67 +95,71 @@ const Game: React.FC = () => {
 	}, [keyPressed])
 
 	useEffect(() => {
-
-		const socket = getSocket()
-		console.log(socket)
-		if (socket === undefined) {
-			return
-		}
-		
-	  	socket.on("game_started", (data) => {
-			const players = data.players
-			if (players === undefined) {
-				return
-			}
-
-			players.forEach((player: Player) => {
-				addPreview(player.username, board)
+		const setupSocketListeners = (socket: Socket) => {
+			console.log("Setting up socket listeners")
+	
+			socket.on("game_started", (data: any) => {
+				const players = data.players
+				if (!players) return
+	
+				players.forEach((player: Player) => {
+					addPreview(player.username, board)
+				})
 			})
-	  	})
-  
-	 	socket.on("game_update", (data) => {
-
-			if (data.nextPiece) {
-				setNextPiece(data.nextPiece)
-			}
-
-			setBoard(data.board)
-		})
-
-		socket.on("game_preview", (data) => {
-			addPreview(data.player, data.board)
-		})
-
-	  	socket.on("game_over", (data) => {
-			console.log("Game over")
-	 	})
-
-		 socket.on("score_update", (data) => {
-			console.log(data)
-			setScore(data.score)
-			setLines(data.lines)
-	 	})
-  
-		console.log("sending join game")
-	  	socket.emit("join_game", {
-			roomName: roomName,
-			username: "Liam"
-		})
-
-		const handleBeforeUnload = () => {
-			socket.emit("quit_game", { roomName: roomName})
-			if (socket.connected === true) {
-				socket.disconnect()
-			}
+	
+			socket.on("game_update", (data: any) => {
+				if (data.nextPiece) {
+					setNextPiece(data.nextPiece)
+				}
+	
+				setBoard(data.board)
+			})
+	
+			socket.on("game_preview", (data: any) => {
+				addPreview(data.player, data.board)
+			})
+	
+			socket.on("game_over", (data: any) => {
+				console.log("Game over")
+			})
+	
+			socket.on("score_update", (data: any) => {
+				setScore(data.score)
+				setLines(data.lines)
+			})
+	
+			console.log("Sending join game")
+			sendSocketMessage("join_game", { roomName: roomName })
 		}
+	
+		// Ensure socket is connected before adding listeners
+		const socket = getSocket()
+		if (!socket) {
+			console.log("Socket not initialized. Waiting...")
+			const interval = setInterval(() => {
+				const currentSocket = getSocket()
+				if (currentSocket) {
+					console.log("Socket initialized. Setting up listeners.")
+					clearInterval(interval)
+					setupSocketListeners(currentSocket)
+				}
+			}, 200) // Check every 100ms
 
+		} else {
+			setupSocketListeners(socket)
+		}
+	
+		// Handle window unload to notify the server
+		const handleBeforeUnload = () => {
+			sendSocketMessage("quit_game", { roomName: roomName })
+		}
+	
 		window.addEventListener("beforeunload", handleBeforeUnload)
-  
-	  	return () => {
+	
+		return () => {
 			window.removeEventListener("beforeunload", handleBeforeUnload)
-			socket.emit("quit_game", { roomName: roomName})
-			disconnectSocket()
-	  	}
+			sendSocketMessage("quit_game", { roomName: roomName })
+		}
 	}, [])
 
 	return (

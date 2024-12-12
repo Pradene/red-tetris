@@ -2,15 +2,11 @@ import express, { Request, Response } from "express"
 import { body, validationResult } from "express-validator"
 import bcrypt from "bcryptjs"
 
-import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../utils/auth"
+import { generateAccessToken, generateRefreshToken, TokenPayload, verifyToken } from "../../utils/auth"
 
-import User from "../db/models/User"
+import User from "../../db/models/User"
 
 const router = express.Router()
-
-router.get("/hello", (req: Request, res: Response) => {
-  res.json({message: "Hello World"})
-})
 
 // Login route
 router.post("/login",
@@ -44,10 +40,29 @@ router.post("/login",
       return
     }
 
-    const accesToken = generateAccessToken(user.id, user.username)
-    const refreshToken = generateRefreshToken(user.id, user.username)
+    const payload: TokenPayload = {
+      userId: user.id,
+      username: user.username
+    }
 
-    res.json({ message: "Login successfully", accesToken, refreshToken })
+    const accessToken = generateAccessToken(payload)
+    const refreshToken = generateRefreshToken(payload)
+
+    res.cookie('accessToken', accessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      maxAge: 1000 * 60 * 15
+    })
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      maxAge: 1000 * 60 * 60 * 24 * 7
+    })
+
+    res.json({ message: "Login successfully", accessToken, refreshToken })
 
   } catch (error: any) {
     console.error("Error during login", error)
@@ -109,21 +124,37 @@ router.post("/register",
 })
 
 // Refresh token route
-router.post("/refresh", (req: Request, res: Response) => {
-  const { refreshToken } = req.body
-  if(!refreshToken) {
+router.get("/token", (req: Request, res: Response) => {
+  const token = req.cookies?.refreshToken
+  if(!token) {
     res.status(400).json({ message: "Refresh token is required" })
     return
   }
 
-  const payload = verifyRefreshToken(refreshToken)
+  const payload = verifyToken(token)
   if (!payload) {
     res.status(403).json({ message: "Invalid refresh token" })
     return
   }
+  
+  const currenttime = Date.now() / 1000
+  const tokenExp = payload.exp || 0
+  const timeUntilExp = tokenExp - currenttime
+  
+  if (timeUntilExp < 0) {
+    res.status(401).json({ message: "Unauthorizes" })
+    return
+  }
 
-  // const newAccessToken = generateAccessToken()
-  // res.json({ accessToken: newAccessToken })
+  const accessToken = generateAccessToken(payload)
+  res.cookie('accessToken', accessToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+    maxAge: 1000 * 60 * 15
+  })
+  
+  res.json({ message: "Token refreshed", accessToken: accessToken })
 })
 
 export default router

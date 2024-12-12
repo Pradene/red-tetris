@@ -1,6 +1,9 @@
-export const testRequest = async () => {
+export const tokenRequest = async () => {
     const response = await fetch(
-        `http://localhost:5000/api/auth/hello`
+        `http://localhost:5000/api/auth/token`, {
+            method: "GET",
+            credentials: "include"
+        }
     )
 
     const data = await response.json()
@@ -12,7 +15,7 @@ export const loginRequest = async (username: string, password: string) => {
         username: username,
         password: password
     })
-    
+
     const response = await fetch(
         `http://localhost:5000/api/auth/login`, {
             method: "POST",
@@ -20,6 +23,7 @@ export const loginRequest = async (username: string, password: string) => {
                 "Content-Type": "application/json",
             },
             body: body,
+            credentials: "include"
         }
     )
 
@@ -40,6 +44,7 @@ export const registerRequest = async (username: string, password: string) => {
                 "Content-Type": "application/json",
             },
             body: body,
+            credentials: "include"
         }
     )
 

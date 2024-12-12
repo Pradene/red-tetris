@@ -1,37 +1,34 @@
 import jwt, { JwtPayload } from "jsonwebtoken"
 
-const ACCESS_TOKEN_SECRET = "access_secret"
-const REFRESH_TOKEN_SECRET = "refresh_secret"
 const ACCESS_TOKEN_EXPIRY = "15m"
 const REFRESH_TOKEN_EXPIRY = "7d"
 
+export interface TokenPayload {
+  userId: number,
+  username: string,
+  exp?: number,
+  iat?: number
+}
+
 // Generate access token
-export const generateAccessToken = (userId: number, username: string): string => {
-  return jwt.sign({ id: userId, username: username }, ACCESS_TOKEN_SECRET, {
+export const generateAccessToken = (payload: TokenPayload): string => {
+  return jwt.sign({ id: payload.userId, username: payload.username }, process.env.JWT_SECRET!, {
     expiresIn: ACCESS_TOKEN_EXPIRY,
   })
 }
 
 // Generate refresh token
-export const generateRefreshToken = (userId: number, username: string): string => {
-  return jwt.sign({ id: userId, username: username }, REFRESH_TOKEN_SECRET, {
+export const generateRefreshToken = (payload: TokenPayload): string => {
+  return jwt.sign({ id: payload.userId, username: payload.username }, process.env.JWT_SECRET!, {
     expiresIn: REFRESH_TOKEN_EXPIRY,
   })
 }
 
 // Verify access token
-export const verifyAccessToken = (token: string) => {
+export const verifyToken = (token: string) => {
   try {
-    return jwt.verify(token, ACCESS_TOKEN_SECRET)
-  } catch {
-    return null
-  }
-}
-
-// Verify refresh token
-export const verifyRefreshToken = (token: string) => {
-  try {
-    return jwt.verify(token, REFRESH_TOKEN_SECRET)
+    return jwt.verify(token, process.env.JWT_SECRET!) as TokenPayload
+    
   } catch {
     return null
   }

@@ -22,7 +22,7 @@ const LoginForm: React.FC = () => {
     
     const [response, data] = await loginRequest(username, password)
     if (response.ok) {
-      // connectSocket()
+      connectSocket(data.accessToken)
       navigate("/")
 
     } else {

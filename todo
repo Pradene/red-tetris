@@ -1,5 +1,4 @@
 - Blocked n - 1 lines of opponent when a player remove line(s)
-- Connection using http://<server_name_or_ip>:<port>/<room>/<player_name>
 - Tests
 - Different mode
 - Redux implementation

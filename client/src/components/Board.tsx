@@ -1,5 +1,7 @@
 import React from "react"
 
+import styles from "./Board.module.css"
+
 export type CellState = "J" | "L" | "O" | "T" | "I" | "Z" | "S" | "0"
 interface CellProps {
 	color: string
@@ -8,13 +10,8 @@ interface CellProps {
 const Cell: React.FC<CellProps> = ({ color}) => {
 	return (
 		<div
-			style={{
-				backgroundColor: color,
-				border: 'none',
-				width: "100%",
-				position: "relative",
-				aspectRatio: "1",
-			}} 
+			style={{backgroundColor: color}}
+			className={styles.cell} 
 		/>
 	)
 }

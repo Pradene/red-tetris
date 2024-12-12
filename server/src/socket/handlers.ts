@@ -7,10 +7,9 @@ const games: Map<string, Game> = new Map()
 export const registerSocketHandlers = (io: Server, socket: Socket) => {
     
     socket.on('join_game', (data) => {
-        console.log("data:", data)
-
-        const { roomName, username } = data
-        if (username === undefined || roomName === undefined) {
+        const username = socket.data.user.username
+        const { roomName } = data
+        if (roomName === undefined) {
             console.error("Error: you need to provide a username and a room name to join")
             return
         }
