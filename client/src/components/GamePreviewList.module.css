@@ -11,23 +11,11 @@
     width: auto;
     padding: 12px;
     display: flex;
+    flex-wrap: wrap;
     gap: 12px;
     flex-direction: row;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     border-bottom: 1px solid white;
     border-right:none;
-}
-  
-@media (max-width: 768px) {
-    .gamePreviewList {
-      flex-direction: row;
-    }
-  
-    .gamePreview {
-      flex-direction: column;
-      border-right: 1px solid white;
-      border-bottom: none;
-  
-    }
 }

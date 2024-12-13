@@ -1,11 +1,14 @@
-import React, { useState, useRef, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { Socket } from "socket.io-client"
 import { getSocket, sendSocketMessage } from "../utils/socket"
 
-import { Board, CellState } from "../components/Board"
+import { Board } from "../components/Board"
+import { CellState } from "../components/Cell"
 import GamePreviewList from "../components/GamePreviewList"
 
 import styles from "./Game.module.css"
+import { useSelector } from "react-redux"
+import { RootState } from "../store/store"
 
 
 type Player = {
@@ -17,6 +20,7 @@ const ROWS = 20
 const COLS = 10
 
 const Game: React.FC = () => {
+	const user = useSelector((state: RootState) => state.auth.user)
 
 	const [ lines, setLines ] = useState<number>(0)
 	const [ score, setScore ] = useState<number>(0)
@@ -153,9 +157,9 @@ const Game: React.FC = () => {
 		const handleBeforeUnload = () => {
 			sendSocketMessage("quit_game", { roomName: roomName })
 		}
-	
+		
 		window.addEventListener("beforeunload", handleBeforeUnload)
-	
+		
 		return () => {
 			window.removeEventListener("beforeunload", handleBeforeUnload)
 			sendSocketMessage("quit_game", { roomName: roomName })
@@ -168,12 +172,14 @@ const Game: React.FC = () => {
 				<GamePreviewList gamePreviews={previews} />
 			</div>
 			<div className={styles.gameBoard}>
-				<Board cols={COLS} rows={ROWS} board={board} />
+				<div className={styles.gameContainer}>
+					<Board cols={COLS} rows={ROWS} board={board} />
+				</div>
 			</div>
 			<div className={styles.gameSidebar}>
 			    <div className={styles.nextPiece}>
-				    <p>Next piece:</p>
-				    <div style={{width: "50%", maxWidth: "60px"}}>
+				    <p style={{margin: "0"}}>Next piece:</p>
+				    <div style={{width: "25%", maxWidth: "120px"}}>
 					    <Board cols={4} rows={4} board={nextPiece} />
 				    </div>
 			    </div>

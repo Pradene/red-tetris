@@ -2,60 +2,60 @@ import { Board } from "./board"
 import { Game } from "./game"
 
 export class Player {
-    username: string
-    score: number = 0
-    board: Board
+	username: string
+	score: number = 0
+	board: Board
 
-    constructor(game: Game, username: string) {
-        this.username = username
-        this.board = new Board(game, this)
-    }
+	constructor(game: Game, username: string) {
+		this.username = username
+		this.board = new Board(game, this)
+	}
 
-    public updateScore(removedLines: number): void {
-        if (removedLines < 1 || removedLines > 4) {
-            return
-        }
+	public updateScore(removedLines: number): void {
+		if (removedLines < 1 || removedLines > 4) {
+			return
+		}
 
-        const baseScore = 100
+		const baseScore = 100
 		const score = ((baseScore * 2 * removedLines) - baseScore)
-        + (Math.floor(removedLines / 4) * baseScore)
+		+ (Math.floor(removedLines / 4) * baseScore)
 
 		this.score += score
 	}
 
-    public moveToBottom() {
-        if (this.board.over) {
-            return
-        }
-        
-        this.board.movePieceToBottom()
-    }
+	public moveToBottom() {
+		if (this.board.over) {
+			return
+		}
 
-    public move(direction: {x: number, y:number}) {
-        if (this.board.over) {
-            return
-        }
+		this.board.movePieceToBottom()
+	}
 
-        this.board.movePiece(direction)
-    }
+	public move(direction: {x: number, y:number}) {
+		if (this.board.over) {
+			return
+		}
 
-    public rotate() {
-        if (this.board.over) {
-            return
-        }
+		this.board.movePiece(direction)
+	}
 
-        this.board.rotatePiece()
-    }
+	public rotate() {
+		if (this.board.over) {
+			return
+		}
 
-    public start() {
-        this.board.start()
-    }
+		this.board.rotatePiece()
+	}
 
-    public stop() {
-        this.board.stop()
-    }
+	public start() {
+		this.board.start()
+	}
 
-    public restart() {
-        this.board.restart()
-    }
+	public stop() {
+		this.board.stop()
+	}
+
+	public restart() {
+		this.board.restart()
+	}
 }

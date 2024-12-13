@@ -1,6 +1,5 @@
 - Blocked n - 1 lines of opponent when a player remove line(s)
 - Tests
 - Different mode
-- Redux implementation
 - Game over screen
-
+- leaderboard

@@ -1,10 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { loginRequest } from '../api/auth'
 import { useNavigate } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
+
+import { loginRequest } from '../api/auth'
 import { connectSocket } from '../utils/socket'
-import styles from "./LoginForm.module.css"
+import { AppDispatch } from '../store/store'
+import { setAuthenticated } from '../store/authReducer'
+
+// import styles from "./LoginForm.module.css"
+
 
 const LoginForm: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>()
+
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
   const navigate = useNavigate()
@@ -19,10 +27,15 @@ const LoginForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     const [response, data] = await loginRequest(username, password)
     if (response.ok) {
-      connectSocket(data.accessToken)
+      dispatch(setAuthenticated({
+        id: data.user.id,
+        username: data.user.username
+      }))
+
+      connectSocket()
       navigate("/")
 
     } else {
@@ -33,7 +46,7 @@ const LoginForm: React.FC = () => {
   return (
     <form onSubmit={handleSubmit} className="" style={{textAlign: "center"}}>
       <h1 className="">Welcome Back!</h1>
-      
+
       <div className="">
           <input
               style={{width: "100%", marginBottom: "0.5rem"}}
@@ -46,7 +59,7 @@ const LoginForm: React.FC = () => {
               required
           />
       </div>
-      
+
       <div className="">
           <input
               style={{width: "100%", marginBottom: "0.5rem"}}
@@ -58,7 +71,7 @@ const LoginForm: React.FC = () => {
               required
           />
       </div>
-      
+
       <button
         type="submit"
         className="button"
@@ -66,14 +79,14 @@ const LoginForm: React.FC = () => {
       >
         Log In
       </button>
-      
+
       <p className="">
         Don't have an account?
         <button
           type="button"
           onClick={() => navigate("/register")}
           className=""
-        
+
         >Sign Up</button>
       </p>
     </form>

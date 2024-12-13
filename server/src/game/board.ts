@@ -15,8 +15,8 @@ export class Board {
 	private rowsRemoved: number = 0
 	public  over: Boolean = false
 
-    private pieceMoveIntervalId: | NodeJS.Timeout | undefined = undefined
-    private pieceMoveInterval: number = 500
+	private pieceMoveIntervalId: | NodeJS.Timeout | undefined = undefined
+	private pieceMoveInterval: number = 500
 
 	constructor(game: Game, player: Player) {
 		this.game = game
@@ -105,11 +105,11 @@ export class Board {
 	public rotatePiece(): Boolean {
 		const piece = this.currentPiece
 		const position: {x: number, y: number} | undefined = piece.position
-		
+
 		if (position === undefined) {
 			return false
 		}
-		
+
 		if (this.canRotatePiece(piece) === false) {
 			return false
 		}
@@ -126,11 +126,11 @@ export class Board {
 	public movePiece(direction: {x: number, y: number}): Boolean {
 		const piece = this.currentPiece
 		const position: {x: number, y: number} | undefined = piece.position
-		
+
 		if (position === undefined) {
 			return false
 		}
-		
+
 		if (this.canMovePiece(piece, direction) === false) {
 			return false
 		}
@@ -150,7 +150,7 @@ export class Board {
 		const rowsRemaining = this.pile.filter((row) => row.some((cell) => cell === "0"))
 		const rowsRemoved = ROWS - rowsRemaining.length
 		const rowsEmpty = Array.from({length: rowsRemoved}, () => emptyRow)
-		
+
 		this.rowsRemoved += rowsRemoved
 		this.pile = [...rowsEmpty, ...rowsRemaining]
 		return rowsRemoved
@@ -167,7 +167,7 @@ export class Board {
 					if (cell !== '0') {
 						const x = position.x + dx;
 						const y = position.y + dy;
-	
+
 						if (x >= 0 && x < COLS && y >= 0 && y < ROWS) {
 							pile[y][x] = cell;
 						}
@@ -181,18 +181,18 @@ export class Board {
 
 	private savePieceToBoard(piece: Piece): void {
 		this.pile = this.copyPieceToBoard(piece)
-		
+
 		const removedLines = this.removeLines()
 		if (removedLines > 0) {
 			this.player.updateScore(removedLines)
-			
+
 			this.game.sendScoreUpdate({
 				player: this.player.username,
 				score: this.player.score,
 				lines: this.rowsRemoved
 			})
 		}
-		
+
 		// Send preview to all users of the game
 		this.game.sendGamePreview({
 			player: this.player.username,
@@ -212,7 +212,7 @@ export class Board {
 			x: Math.floor(COLS / 2) - Math.floor(this.nextPiece.shape[0].length / 2),
 			y: -(this.nextPiece.shape.length - 1)
 		}
-		
+
 		if (!this.canBePlaced(initialPosition, this.nextPiece.shape)) {
 			return false
 		}
@@ -239,7 +239,7 @@ export class Board {
 				if (cell !== "0" || tmp[index] !== "0") {
 					tmp[index] = "L"
 				}
-				
+
 				return tmp[index]
 			})
 		})
@@ -251,11 +251,11 @@ export class Board {
 		const board = this.copyPieceToBoard(this.currentPiece)
 		return board
 	}
-	
+
 	private startPieceInterval(): void {
 		this.pieceMoveIntervalId = setInterval(() => {
-            this.movePieceDown()
-        }, this.pieceMoveInterval)
+			this.movePieceDown()
+		}, this.pieceMoveInterval)
 	}
 
 	private stopPieceInterval(): void {

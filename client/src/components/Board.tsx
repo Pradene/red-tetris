@@ -1,20 +1,8 @@
 import React from "react"
 
+import { CellState, Cell } from "./Cell"
+
 import styles from "./Board.module.css"
-
-export type CellState = "J" | "L" | "O" | "T" | "I" | "Z" | "S" | "0"
-interface CellProps {
-	color: string
-}
-
-const Cell: React.FC<CellProps> = ({ color}) => {
-	return (
-		<div
-			style={{backgroundColor: color}}
-			className={styles.cell} 
-		/>
-	)
-}
 
 interface BoardProps {
 	cols: number,
@@ -68,23 +56,21 @@ export const Board: React.FC<BoardProps> = ({cols, rows, board}) => {
 	}
 
 	return (
-		<div style={{width: "auto", height: "100%"}}>
-			<div style={{
-				display: "grid",
-				height: "100%",
-				width: "100%",
-				gridTemplateColumns: `repeat(${cols}, 1fr)`,
-				gridTemplateRows: `repeat(${rows}, 1fr)`,
-			}} >
-				{standardizedBoard.map((row, rowIndex) =>
-					row.map((cell, colIndex) => (
-						<Cell
-				  			key={`${rowIndex * cols + colIndex}`}
-				  			color={getColorForCell(cell)} // Pass the color dynamically based on the cell state
-						/>
-			  		))
-				)}
-			</div>
+		<div style={{
+			height: "100%",
+			display: "grid",
+			margin: "auto",
+			gridTemplateColumns: `repeat(${cols}, minmax(0, auto))`,
+			gridTemplateRows: `repeat(${rows}, minmax(0, auto))`,
+		}}>
+		{standardizedBoard.map((row, rowIndex) =>
+			row.map((cell, colIndex) => (
+				<Cell
+				key={`${rowIndex * cols + colIndex}`}
+				color={getColorForCell(cell)} // Pass the color dynamically based on the cell state
+				/>
+			))
+		)}
 		</div>
 	)
 }

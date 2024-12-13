@@ -39,7 +39,7 @@ export class Piece {
 	constructor(type: string)
 	constructor(type: string, position: {x: number, y: number} | undefined)
 	constructor(type: string, position: {x: number, y: number} | undefined, shape: string[][] | undefined)
-	
+
 	constructor (type: string, position?: {x: number, y: number}, shape?: string[][]) {
 		this.type = type
 		this.position = position
@@ -67,7 +67,7 @@ export class Piece {
 	}
 
 	rotate(): void {
-        // The idea of rotating a 2D matrix is to transpose and then reverse each row
-        this.shape = this.getRotatedShape()
-    }
+		// The idea of rotating a 2D matrix is to transpose and then reverse each row
+		this.shape = this.getRotatedShape()
+	}
 }

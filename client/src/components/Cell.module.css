@@ -1,0 +1,39 @@
+.cell {
+	position: relative;
+	width: 100%;
+	aspect-ratio: 1;
+}
+
+
+.circle {
+	position: absolute;
+	background-color: rgb(93, 93, 93);
+	width: 10%;
+	height: 10%;
+	border-radius: 50%;
+	z-index: 1;
+}
+
+.topLeft {
+	top: 0;
+	left: 0;
+	transform: translateX(-50%) translateY(-50%);
+}
+
+.topRight {
+	top: 0;
+	right: 0;
+	transform: translateX(50%) translateY(-50%);
+}
+
+.bottomLeft {
+	bottom: 0;
+	left: 0;
+	transform: translateX(-50%) translateY(50%);
+}
+
+.bottomRight {
+	bottom: 0;
+	right: 0;
+	transform: translateX(50%) translateY(50%);
+}

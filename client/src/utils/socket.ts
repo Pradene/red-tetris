@@ -1,26 +1,23 @@
-import { disconnect } from "process"
 import { io, Socket } from "socket.io-client"
 
 let socket: Socket | null = null
 let messageQueue: {type: string, message: any}[] = []
 let isConnected: Boolean = false
 
-export const connectSocket = (token: string) => {
+export const connectSocket = () => {
     if (socket) {
         return socket
     }
 
     const url = "http://localhost:5000"
     socket = io(url, {
-        auth: {
-            token: token
-        }
+        withCredentials: true,
     })
 
     socket.on("connect", () => {
         isConnected = true
-        console.log("connected, sending messages")
-        console.log(messageQueue)
+
+        console.log("connected, sending messages", messageQueue)
 
         while (messageQueue.length > 0) {
             const {type, message} = messageQueue.shift()!
@@ -29,6 +26,7 @@ export const connectSocket = (token: string) => {
     })
 
     socket.on("error", () => {
+        console.log("Socket error")
         socket?.close()
     })
 
@@ -42,16 +40,14 @@ export const connectSocket = (token: string) => {
     return socket
 }
 
-const disconnectSocket = () => {
-    socket?.disconnect()
-}
-
 export const getSocket = () => {
     return socket
 }
 
 export const sendSocketMessage = (type: string, message: any) => {
+    console.log("sending message")
     if (isConnected && socket) {
+        console.log("emit")
         socket.emit(type, message)
     } else {
         console.log("WebSocket not ready. Queuing message:", type, message)

@@ -1,6 +1,6 @@
 import React from 'react'
-import { Board, CellState } from './Board'
-
+import { Board } from './Board'
+import { CellState } from './Cell'
 import styles from "./GamePreviewList.module.css"
 
 interface GamePreviewProps {
