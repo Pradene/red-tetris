@@ -18,7 +18,7 @@ export const Board: React.FC<BoardProps> = ({cols, rows, board}) => {
 			return board
 		}
 
-		const standardizedBoard = Array.from({length: rows}, () => 
+		const standardizedBoard = Array.from({length: rows}, () =>
 			Array(cols).fill("0")
 		)
 
@@ -28,7 +28,7 @@ export const Board: React.FC<BoardProps> = ({cols, rows, board}) => {
 		for (let row = 0; row < board.length; row++) {
 			for (let col = 0; col < board[0].length; col++) {
 				standardizedBoard[row + offsetY][col + offsetX] = board[row][col]
-				
+
 			}
 		}
 
@@ -48,9 +48,10 @@ export const Board: React.FC<BoardProps> = ({cols, rows, board}) => {
 			"I": "darkcyan",
 			"Z": "darkred",
 			"S": "darkgreen",
+			"X": "red",
 			"0": "transparent",
 		}
-		
+
 		// Return color based on the current theme
 		return colorMapping[type] || "transparent"
 	}

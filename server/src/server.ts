@@ -9,7 +9,11 @@ import "./config/dotenv"
 import authRoutes from "./api/auth/auth"
 import initializeDb from "./db/utils/init"
 
-initializeDb()
+const NODE_ENV = process.env.NODE_ENV || "development"
+
+if (NODE_ENV !== "test") {
+	initializeDb()
+}
 
 const app = express()
 
@@ -25,15 +29,17 @@ app.set("trust proxy", true)
 
 app.use("/api/auth", authRoutes)
 
-const CLIENT_BUILD_FOLDER = path.join(__dirname, "../../client/build")
-// app.use(express.static(CLIENT_BUILD_FOLDER))
+if (NODE_ENV === "production") {
+	const CLIENT_BUILD_FOLDER = path.join(__dirname, "../../client/build")
+	app.use(express.static(CLIENT_BUILD_FOLDER))
+	app.get("*", (req, res) => {
+		res.sendFile(path.join(CLIENT_BUILD_FOLDER, "/index.html"))
+	})
 
-app.get("*", (req, res) => {
-	// if (process.env.NODE_ENV !== "production") {
-		// res.sendFile(path.join(CLIENT_BUILD_FOLDER, "/index.html"))
-	// } else {
-	// 	res.send("React app is not built yet.")
-	// }
-})
+} else {
+	app.get("*", (req, res) => {
+		res.send("React app is not built yet.")
+	})
+}
 
 export const server = http.createServer(app)

@@ -1,8 +1,9 @@
+import { TetrominoType } from '@shared/define'
 import { Piece } from './piece'
 
 describe('Piece class', () => {
 	it('should rotate correctly', () => {
-		const piece = new Piece('T')
+		const piece = new Piece(TetrominoType.T, {x: 0, y: 0})
 
 		piece.rotate()
 		expect(piece.shape).toEqual([

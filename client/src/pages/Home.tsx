@@ -29,7 +29,7 @@ const Home: React.FC = () => {
 	return (
 		<div style={{
 			width: "100%",
-			height: "100vh",
+			height: "100%",
 			display: "flex",
 			gap: "2rem",
 			flexDirection: "column",

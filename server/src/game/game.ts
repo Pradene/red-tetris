@@ -1,7 +1,12 @@
+import { TetrominoType, TetrominoShapes } from "@shared/define"
+
 import { Piece } from "./piece"
 import { Player } from "./player"
 
 import { io } from "../socket/io"
+
+const ROWS: number = 20
+const COLS: number = 10
 
 export class Game {
 	id: string
@@ -9,12 +14,19 @@ export class Game {
 	pile: Piece[]
 	players: Map<Player, string>
 	spectators: Map<string, string>
+	host: Player | undefined
+
+	cols: number
+	rows: number
 
 	constructor(id: string) {
 		this.id = id
 		this.pile = []
 		this.players = new Map()
 		this.spectators = new Map()
+
+		this.cols = COLS
+		this.rows = ROWS
 
 		this.initializePile()
 	}
@@ -30,6 +42,10 @@ export class Game {
 
 		const player = new Player(this, username)
 		this.players.set(player, socketId)
+
+		if (this.players.size === 1) {
+			this.host = player
+		}
 	}
 
 	public removePlayer(socketId: string) {
@@ -38,7 +54,7 @@ export class Game {
 			return
 		}
 
-		player.stop()
+		player.pause()
 		this.players.delete(player)
 	}
 
@@ -90,7 +106,14 @@ export class Game {
 
 	private createPiece(count: number = 1): void {
 		for (let i = 0; i < count; i++) {
-			this.pile.push(Piece.random())
+			const types = Object.values(TetrominoType) as TetrominoType[]
+    		const randomType = types[Math.floor(Math.random() * types.length)]
+			const shape = TetrominoShapes[randomType]
+			const defaultPosition = {
+				x: Math.floor(COLS / 2) - Math.floor(shape[0].length / 2),
+				y: -shape.length,
+			}
+			this.pile.push(new Piece(randomType, defaultPosition))
 		}
 	}
 
@@ -102,7 +125,8 @@ export class Game {
 			this.createPiece()
 		}
 
-		return this.pile[index].clone()
+		const piece =  this.pile[index].clone()
+		return piece
 	}
 
 	public start() {
@@ -126,12 +150,12 @@ export class Game {
 
 	public end() {
 		for (const [player] of this.players) {
-			player.stop()
+			player.pause()
 		}
 
+		this.started = false
 		this.players.clear()
 		this.spectators.clear()
 		this.pile = []
-
 	}
 }

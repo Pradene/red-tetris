@@ -54,6 +54,7 @@ export const registerSocketHandlers = (io: Server, socket: Socket) => {
 
 		const game = games.get(roomName)
 		game?.removePlayer(socket.id)
+		console.log("Game players", game?.players)
 
 		if (game?.players.size === 0) {
 			games.delete(roomName)

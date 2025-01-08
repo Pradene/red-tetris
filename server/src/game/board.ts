@@ -2,8 +2,7 @@ import { Game } from "./game"
 import { Piece } from "./piece"
 import { Player } from "./player"
 
-const COLS: number = 10
-const ROWS: number = 20
+const TIMEOUT: number = 500
 
 export class Board {
 	private game: Game
@@ -13,10 +12,11 @@ export class Board {
 	private nextPiece: Piece
 	private gamePieceIndex: number
 	private rowsRemoved: number = 0
-	public  over: Boolean = false
 
-	private pieceMoveIntervalId: | NodeJS.Timeout | undefined = undefined
-	private pieceMoveInterval: number = 500
+	private pieceMoveTimeoutId: NodeJS.Timeout | undefined = undefined
+	private pieceMoveTimeout: number = TIMEOUT
+
+	public  over: Boolean = false
 
 	constructor(game: Game, player: Player) {
 		this.game = game
@@ -26,12 +26,11 @@ export class Board {
 		this.nextPiece = this.getNextPiece()
 
 		this.player = player
-		this.pile = Array.from({ length: ROWS }, () => Array(COLS).fill('0'))
+		this.pile = Array.from({ length: this.game.rows }, () => Array(this.game.cols).fill('0'))
 	}
 
 
 	// Game utility movements
-
 
 	private canBePlaced(position: {x: number, y: number}, shape: string[][]): Boolean {
 		return shape.every((row, dy) => {
@@ -44,8 +43,8 @@ export class Board {
 				const ny: number = position.y + dy
 
 				return (
-					nx >= 0 && nx < COLS &&
-					ny >= -(shape.length) && ny < ROWS &&
+					nx >= 0 && nx < this.game.cols &&
+					ny >= -(shape.length) && ny < this.game.rows &&
 					((ny >= 0) === (ny >= 0 && this.pile[ny][nx] === '0'))
 				)
 			})
@@ -54,101 +53,30 @@ export class Board {
 
 	private canRotatePiece(piece: Piece ): Boolean {
 		const position: {x: number, y: number} | undefined = piece.position
-		if (position === undefined) {
-			return false
-		}
 
 		const rotatedShape = piece.getRotatedShape()
-
 		return this.canBePlaced(position, rotatedShape)
 	}
 
 	private canMovePiece(piece: Piece, direction: {x: number, y: number}): Boolean {
 		const position: {x: number, y: number} | undefined = piece.position
-		if (position === undefined) {
-			return false
-		}
 
 		const x = position.x + direction.x
 		const y = position.y + direction.y
-
 		return this.canBePlaced({x, y}, piece.shape)
 	}
 
-	private movePieceDown(): Boolean {
-		const direction = {x: 0, y: 1}
-		if (this.movePiece(direction) === false) {
+	public blockLines(blockedRows: number): void {
+		const rows = Array.from({ length: blockedRows }, () => Array(this.game.cols).fill("X"))
+		const tmp = this.pile.slice(blockedRows, this.game.rows)
 
-			this.savePieceToBoard(this.currentPiece)
-			clearInterval(this.pieceMoveIntervalId)
-
-			if (this.setCurrentPiece() === false) {
-				console.log("Game over")
-				this.over = true
-			}
-
-			return false
-		}
-
-		return true
-	}
-
-
-	// Game movements
-
-
-	public movePieceToBottom(): void {
-		while (this.movePieceDown())
-			continue
-	}
-
-	public rotatePiece(): Boolean {
-		const piece = this.currentPiece
-		const position: {x: number, y: number} | undefined = piece.position
-
-		if (position === undefined) {
-			return false
-		}
-
-		if (this.canRotatePiece(piece) === false) {
-			return false
-		}
-
-		piece.rotate()
-
-		this.game.sendGameStateUpdate(this.player, {
-			board: this.getState()
-		})
-
-		return true
-	}
-
-	public movePiece(direction: {x: number, y: number}): Boolean {
-		const piece = this.currentPiece
-		const position: {x: number, y: number} | undefined = piece.position
-
-		if (position === undefined) {
-			return false
-		}
-
-		if (this.canMovePiece(piece, direction) === false) {
-			return false
-		}
-
-		position.x += direction.x
-		position.y += direction.y
-
-		this.game.sendGameStateUpdate(this.player, {
-			board: this.getState()
-		})
-
-		return true
+		this.pile = [...tmp, ...rows]
 	}
 
 	private removeLines(): number {
-		const emptyRow = Array(COLS).fill("0")
+		const emptyRow = Array(this.game.cols).fill("0")
 		const rowsRemaining = this.pile.filter((row) => row.some((cell) => cell === "0"))
-		const rowsRemoved = ROWS - rowsRemaining.length
+		const rowsRemoved = this.game.rows - rowsRemaining.length
 		const rowsEmpty = Array.from({length: rowsRemoved}, () => emptyRow)
 
 		this.rowsRemoved += rowsRemoved
@@ -156,48 +84,29 @@ export class Board {
 		return rowsRemoved
 	}
 
-	private copyPieceToBoard(piece: Piece): string[][] {
+	private copyPieceToPile(piece: Piece): string[][] {
 		const pile = this.pile.map(row => [...row])
+		const { position, shape } = piece
 
-		if (piece.position !== undefined) {
-			const { position, shape } = piece
-
-			shape.forEach((row, dy) => {
-				row.forEach((cell, dx) => {
-					if (cell !== '0') {
-						const x = position.x + dx;
-						const y = position.y + dy;
-
-						if (x >= 0 && x < COLS && y >= 0 && y < ROWS) {
-							pile[y][x] = cell;
-						}
+		shape.forEach((row, dy) => {
+			row.forEach((cell, dx) => {
+				if (cell !== '0') {
+					const x = position.x + dx
+					const y = position.y + dy
+					if (x >= 0 && x < this.game.cols && y >= 0 && y < this.game.rows) {
+						pile[y][x] = cell
 					}
-				})
+				}
 			})
-		}
+		})
 
 		return pile
 	}
 
-	private savePieceToBoard(piece: Piece): void {
-		this.pile = this.copyPieceToBoard(piece)
+	private savePieceToPile(piece: Piece): Boolean {
+		this.pile = this.copyPieceToPile(piece)
 
-		const removedLines = this.removeLines()
-		if (removedLines > 0) {
-			this.player.updateScore(removedLines)
-
-			this.game.sendScoreUpdate({
-				player: this.player.username,
-				score: this.player.score,
-				lines: this.rowsRemoved
-			})
-		}
-
-		// Send preview to all users of the game
-		this.game.sendGamePreview({
-			player: this.player.username,
-			board: this.getPreview()
-		})
+		return this.currentPiece.position.y > 0
 	}
 
 	private getNextPiece(): Piece {
@@ -208,58 +117,145 @@ export class Board {
 	}
 
 	private setCurrentPiece(): Boolean {
-		const initialPosition = {
-			x: Math.floor(COLS / 2) - Math.floor(this.nextPiece.shape[0].length / 2),
-			y: -(this.nextPiece.shape.length - 1)
-		}
-
-		if (!this.canBePlaced(initialPosition, this.nextPiece.shape)) {
+		if (!this.canBePlaced(this.nextPiece.position, this.nextPiece.shape)) {
 			return false
 		}
 
-		this.nextPiece.position = initialPosition
 		this.currentPiece = this.nextPiece
 		this.nextPiece = this.getNextPiece()
 
 		this.game.sendGameStateUpdate(this.player, {
-			board: this.getState(),
+			board: this.getBoard(),
 			nextPiece: this.nextPiece.shape
 		})
-
-		this.startPieceInterval()
 
 		return true
 	}
 
 	public getPreview(): string[][] {
-		let tmp = Array(COLS).fill("0")
+		let tmp = Array(this.game.cols).fill("0")
 
-		const shadow = this.pile.map((row) => {
-			return row.map((cell, index) => {
-				if (cell !== "0" || tmp[index] !== "0") {
-					tmp[index] = "L"
+		return this.pile.map((row, y) => {
+			return row.map((cell, x) => {
+				if (cell !== "0" || tmp[x] !== "0") {
+					tmp[x] = "X"
 				}
 
-				return tmp[index]
+				return tmp[x]
 			})
 		})
-
-		return shadow
 	}
 
-	public getState(): string[][] {
-		const board = this.copyPieceToBoard(this.currentPiece)
-		return board
+	public getBoard(): string[][] {
+		return this.copyPieceToPile(this.currentPiece)
 	}
 
-	private startPieceInterval(): void {
-		this.pieceMoveIntervalId = setInterval(() => {
+
+	// Game movements
+
+	public movePieceToBottom(): void {
+		while (this.movePieceDown() === true) {
+			continue
+		}
+	}
+
+	public rotatePiece(): Boolean {
+		const piece = this.currentPiece
+
+		if (this.canRotatePiece(piece) === false) {
+			return false
+		}
+
+		piece.rotate()
+
+		this.game.sendGameStateUpdate(this.player, {
+			board: this.getBoard()
+		})
+
+		return true
+	}
+
+	public movePiece(direction: {x: number, y: number}): Boolean {
+		const piece = this.currentPiece
+		const position: {x: number, y: number} | undefined = piece.position
+
+		if (this.canMovePiece(piece, direction) === false) {
+			return false
+		}
+
+		position.x += direction.x
+		position.y += direction.y
+
+		this.game.sendGameStateUpdate(this.player, {
+			board: this.getBoard()
+		})
+
+		return true
+	}
+
+	private movePieceDown(): Boolean {
+		const direction = {x: 0, y: 1}
+		if (this.movePiece(direction) === false) {
+
+			if (this.savePieceToPile(this.currentPiece) === false) {
+				console.log("Game over")
+				this.over = true
+
+			} else {
+				const removedLines = this.removeLines()
+				if (removedLines > 0) {
+					this.player.updateScore(removedLines)
+
+					this.game.sendScoreUpdate({
+						player: this.player.username,
+						score: this.player.score,
+						lines: this.rowsRemoved
+					})
+				}
+			}
+
+			// Send preview to all users of the game
+			this.game.sendGamePreview({
+				player: this.player.username,
+				board: this.getPreview()
+			})
+
+			if (this.setCurrentPiece() === false) {
+				console.log("Game over")
+				this.over = true
+				// this.game.handleGameOver()
+			}
+
+			return false
+		}
+
+		return true
+	}
+
+	private startPieceTimeout(): void {
+		const func = () => {
+
+			const start = performance.now()
+
+			if (this.over === true) {
+				return
+			}
+
 			this.movePieceDown()
-		}, this.pieceMoveInterval)
+
+			const end = performance.now()
+			const elapsedTime = end - start
+
+			const timeout = Math.max(0, this.pieceMoveTimeout - (elapsedTime))
+			this.pieceMoveTimeoutId = setTimeout(func, timeout)
+		}
+
+		func()
 	}
 
-	private stopPieceInterval(): void {
-		clearInterval(this.pieceMoveIntervalId)
+	private stopPieceTimeout(): void {
+		clearTimeout(this.pieceMoveTimeoutId)
+		this.pieceMoveTimeoutId = undefined
 	}
 
 	public start(): void {
@@ -267,16 +263,16 @@ export class Board {
 			return
 		}
 
-		this.stopPieceInterval()
-		this.startPieceInterval()
+		this.stopPieceTimeout()
+		this.startPieceTimeout()
 	}
 
-	public stop(): void {
-		this.stopPieceInterval()
+	public pause(): void {
+		this.stopPieceTimeout()
 	}
 
 	public restart(): void {
-		this.stopPieceInterval()
+		this.stopPieceTimeout()
 
 		this.over = false
 		this.rowsRemoved = 0
@@ -284,7 +280,7 @@ export class Board {
 		this.currentPiece = this.getNextPiece()
 		this.nextPiece = this.getNextPiece()
 
-		this.pile = Array.from({ length: ROWS }, () => Array(COLS).fill('0'))
+		this.pile = Array.from({ length: this.game.rows }, () => Array(this.game.cols).fill('0'))
 		this.start()
 	}
 }

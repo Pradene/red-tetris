@@ -76,9 +76,8 @@ const LoginForm: React.FC = () => {
         type="submit"
         className="button"
         style={{width: "100%", margin: "0.5rem 0rem"}}
-      >
-        Log In
-      </button>
+
+      >Log In</button>
 
       <p className="">
         Don't have an account?

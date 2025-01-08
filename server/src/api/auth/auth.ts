@@ -94,10 +94,8 @@ router.post("/register",
 		.isAlphanumeric()
 		.escape(),
 	body("password"),
-
 	async (req: Request, res: Response) => {
 
-	console.log(req.body)
 	const errors = validationResult(req)
 	if (!errors.isEmpty()) {
 		console.error("Error during validation", errors)
@@ -141,7 +139,7 @@ router.post("/register",
 })
 
 // Refresh token route
-router.get("/token", (req: Request, res: Response) => {
+router.get("/token", async (req: Request, res: Response) => {
 	const token = req.cookies?.refreshToken
 	if(!token) {
 		res.status(400).json({ message: "Refresh token is required" })
@@ -154,12 +152,18 @@ router.get("/token", (req: Request, res: Response) => {
 		return
 	}
 
+	const user = await User.findOne({ where : { id: payload.id, username: payload.username }})
+	if (!user) {
+		res.status(403).json({ message: "User doesn't exist" })
+		return
+	}
+
 	const currenttime = Date.now() / 1000
 	const tokenExp = payload.exp || 0
 	const timeUntilExp = tokenExp - currenttime
 
 	if (timeUntilExp < 0) {
-		res.status(401).json({ message: "Unauthorizes" })
+		res.status(401).json({ message: "Unauthorized" })
 		return
 	}
 

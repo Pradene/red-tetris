@@ -7,8 +7,6 @@ import { CellState } from "../components/Cell"
 import GamePreviewList from "../components/GamePreviewList"
 
 import styles from "./Game.module.css"
-import { useSelector } from "react-redux"
-import { RootState } from "../store/store"
 
 
 type Player = {
@@ -20,8 +18,6 @@ const ROWS = 20
 const COLS = 10
 
 const Game: React.FC = () => {
-	const user = useSelector((state: RootState) => state.auth.user)
-
 	const [ lines, setLines ] = useState<number>(0)
 	const [ score, setScore ] = useState<number>(0)
 
@@ -34,7 +30,7 @@ const Game: React.FC = () => {
 			return updated
 		})
 	}
-	
+
 	const [ board, setBoard ] = useState<CellState[][]>(
 		Array.from({length: ROWS}, () => Array(COLS).fill("0"))
 	)
@@ -44,9 +40,8 @@ const Game: React.FC = () => {
 		Array.from({length: 2}, () => Array(4).fill("0"))
 	)
 
-	const urlParams = window.location.pathname.split("/") 
+	const urlParams = window.location.pathname.split("/")
 	const roomName = urlParams[1]
-	const playerName = urlParams[2]
 
 	useEffect(() => {
 		const handleKeyPressed = (event: KeyboardEvent) => {
@@ -60,7 +55,7 @@ const Game: React.FC = () => {
 			}
 
 			setKeyPressed(true)
-			
+
 			switch (event.key) {
 				case "s":
 					socket?.emit("start_game", {roomName: roomName})
@@ -91,7 +86,7 @@ const Game: React.FC = () => {
 
 		window.addEventListener("keydown", handleKeyPressed)
 		window.addEventListener("keyup", handleKeyUp)
-		
+
 		return () => {
 			window.removeEventListener("keydown", handleKeyPressed)
 			window.removeEventListener("keyup", handleKeyUp)
@@ -101,41 +96,44 @@ const Game: React.FC = () => {
 	useEffect(() => {
 		const setupSocketListeners = (socket: Socket) => {
 			console.log("Setting up socket listeners")
-	
+
+			socket.on("ready", (data: any) => {
+
+			})
+
 			socket.on("game_started", (data: any) => {
 				const players = data.players
 				if (!players) return
-	
+
 				players.forEach((player: Player) => {
 					addPreview(player.username, board)
 				})
 			})
-	
+
 			socket.on("game_update", (data: any) => {
 				if (data.nextPiece) {
 					setNextPiece(data.nextPiece)
 				}
-	
+
 				setBoard(data.board)
 			})
-	
+
 			socket.on("game_preview", (data: any) => {
 				addPreview(data.player, data.board)
 			})
-	
+
 			socket.on("game_over", (data: any) => {
 				console.log("Game over")
 			})
-	
+
 			socket.on("score_update", (data: any) => {
 				setScore(data.score)
 				setLines(data.lines)
 			})
-	
-			console.log("Sending join game")
+
 			sendSocketMessage("join_game", { roomName: roomName })
 		}
-	
+
 		// Ensure socket is connected before adding listeners
 		const socket = getSocket()
 		if (!socket) {
@@ -152,14 +150,14 @@ const Game: React.FC = () => {
 		} else {
 			setupSocketListeners(socket)
 		}
-	
+
 		// Handle window unload to notify the server
 		const handleBeforeUnload = () => {
 			sendSocketMessage("quit_game", { roomName: roomName })
 		}
-		
+
 		window.addEventListener("beforeunload", handleBeforeUnload)
-		
+
 		return () => {
 			window.removeEventListener("beforeunload", handleBeforeUnload)
 			sendSocketMessage("quit_game", { roomName: roomName })

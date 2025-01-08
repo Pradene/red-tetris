@@ -17,6 +17,7 @@ import { AppDispatch, RootState } from './store/store'
 
 import { checkAuth } from './store/authThunk'
 import { useSelector } from 'react-redux'
+import LoadingScreen from './components/LoadingScreen'
 
 const ProtectedRoute: React.FC = () => {
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated)
@@ -47,7 +48,7 @@ const App: React.FC = () => {
   }, [dispatch])
 
   if (loading) {
-    return <div>loading...</div>
+    return <LoadingScreen />
   }
 
   return (

@@ -2,7 +2,7 @@ import React from "react"
 
 import styles from "./Cell.module.css"
 
-export type CellState = "J" | "L" | "O" | "T" | "I" | "Z" | "S" | "0"
+export type CellState = "J" | "L" | "O" | "T" | "I" | "Z" | "S" | "X" | "0"
 interface CellProps {
 	color: string
 }

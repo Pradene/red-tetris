@@ -23,7 +23,7 @@ const Register: React.FC = () => {
         console.error("Password confirmation failed")
         return
     }
-    
+
     const [response, data] = await registerRequest(username, password)
     if (response.ok) {
       navigate("/login")
@@ -35,10 +35,9 @@ const Register: React.FC = () => {
 
   return (
     <div style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        height: "100vh"
+        display: "grid",
+        placeItems: "center",
+        height: "100%"
     }}>
         <form onSubmit={handleSubmit} className="" style={{textAlign: "center"}}>
           <h1 className="">Join us!</h1>

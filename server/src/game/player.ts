@@ -51,8 +51,8 @@ export class Player {
 		this.board.start()
 	}
 
-	public stop() {
-		this.board.stop()
+	public pause() {
+		this.board.pause()
 	}
 
 	public restart() {
