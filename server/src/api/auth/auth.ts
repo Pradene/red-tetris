@@ -1,10 +1,40 @@
-import express, { Request, Response } from "express"
-import { body, validationResult } from "express-validator"
-import bcrypt from "bcryptjs"
+import express, { Request, Response } from "express";
+import { body, validationResult } from "express-validator";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
-import { generateAccessToken, generateRefreshToken, TokenPayload, verifyToken } from "../../utils/auth"
+import User from "../../db/models/User";
 
-import User from "../../db/models/User"
+interface TokenPayload {
+	id: number,
+	username: string,
+	exp?: number,
+	iat?: number
+}
+
+const ACCESS_TOKEN_EXPIRY = "15m";
+const REFRESH_TOKEN_EXPIRY = "7d";
+
+const generateAccessToken = (payload: TokenPayload): string => {
+	return jwt.sign({ id: payload.id, username: payload.username }, process.env.JWT_SECRET!, {
+		expiresIn: ACCESS_TOKEN_EXPIRY,
+	});
+}
+
+const generateRefreshToken = (payload: TokenPayload): string => {
+	return jwt.sign({ id: payload.id, username: payload.username }, process.env.JWT_SECRET!, {
+		expiresIn: REFRESH_TOKEN_EXPIRY,
+	});
+}
+
+const verifyToken = (token: string) => {
+	try {
+		return jwt.verify(token, process.env.JWT_SECRET!) as TokenPayload;
+
+	} catch {
+		return null;
+	}
+}
 
 const router = express.Router()
 

@@ -6,18 +6,18 @@ export enum TetrominoType {
     J = "J",
     S = "S",
     Z = "Z"
-}
+};
 
 export enum CellType {
     Empty = "0",
     Blocked = "X"
-}
+};
 
-export type CellState = CellType | TetrominoType
+export type CellState = CellType | TetrominoType;
 export const CellState = {
     ...CellType,
     ...TetrominoType
-}
+};
 
 export const TetrominoShapes: Record<TetrominoType, string[][]> = {
 	[TetrominoType.I]: [
@@ -48,4 +48,4 @@ export const TetrominoShapes: Record<TetrominoType, string[][]> = {
 		["Z", "Z", "0"],
 		["0", "Z", "Z"]
 	]
-}
+};

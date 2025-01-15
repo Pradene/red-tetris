@@ -1,45 +1,45 @@
-import express from "express"
-import http from "http"
-import cors from "cors"
-import path from "path"
+import express from "express";
+import http from "http";
+import cors from "cors";
+import path from "path";
 
-import cookieParser from "cookie-parser"
+import cookieParser from "cookie-parser";
 
-import "./config/dotenv"
-import authRoutes from "./api/auth/auth"
-import initializeDb from "./db/utils/init"
+import "./config/dotenv";
+import authRoutes from "./api/auth/auth";
+import initializeDb from "./db/utils/init";
 
-const NODE_ENV = process.env.NODE_ENV || "development"
+const NODE_ENV = process.env.NODE_ENV || "development";
 
 if (NODE_ENV !== "test") {
-	initializeDb()
+	initializeDb();
 }
 
-const app = express()
+const app = express();
 
-app.use(express.json())
-app.use(cookieParser())
+app.use(express.json());
+app.use(cookieParser());
 app.use(cors({
 	origin: "http://localhost:3000",
 	methods: ["GET", "POST"],
 	credentials: true,
-}))
+}));
 
-app.set("trust proxy", true)
+app.set("trust proxy", true);
 
-app.use("/api/auth", authRoutes)
+app.use("/api/auth", authRoutes);
 
 if (NODE_ENV === "production") {
-	const CLIENT_BUILD_FOLDER = path.join(__dirname, "../../client/build")
-	app.use(express.static(CLIENT_BUILD_FOLDER))
+	const CLIENT_BUILD_FOLDER = path.join(__dirname, "../../client/build");
+	app.use(express.static(CLIENT_BUILD_FOLDER));
 	app.get("*", (req, res) => {
-		res.sendFile(path.join(CLIENT_BUILD_FOLDER, "/index.html"))
-	})
+		res.sendFile(path.join(CLIENT_BUILD_FOLDER, "/index.html"));
+	});
 
 } else {
 	app.get("*", (req, res) => {
-		res.send("React app is not built yet.")
-	})
+		res.send("React app is not built yet.");
+	});
 }
 
-export const server = http.createServer(app)
+export const server = http.createServer(app);
