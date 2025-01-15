@@ -1,4 +1,4 @@
-import { TetrominoType, TetrominoShapes } from "@shared/define"
+import { TetrominoType, TetrominoShapes } from "../types/define"
 
 export class Piece {
 	type: TetrominoType

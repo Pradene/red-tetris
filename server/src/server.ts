@@ -9,7 +9,7 @@ import "./config/dotenv";
 import authRoutes from "./api/auth/auth";
 import initializeDb from "./db/utils/init";
 
-const NODE_ENV = process.env.NODE_ENV || "development";
+const NODE_ENV = process.env.NODE_ENV || "production";
 
 if (NODE_ENV !== "test") {
 	initializeDb();
@@ -20,7 +20,7 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-	origin: "http://localhost:3000",
+	origin: "http://localhost:5173",
 	methods: ["GET", "POST"],
 	credentials: true,
 }));

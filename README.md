@@ -24,4 +24,5 @@ To run Red Tetris locally on your system or deploy it for your own server, follo
    git clone https://github.com/Pradene/red-tetris.git
 2. Run the project:
     ```bash
-    npm run start
+   npm run start
+3. Visit the website: http://localhost:5000/

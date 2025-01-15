@@ -97,7 +97,7 @@ const Game: React.FC = () => {
 		const setupSocketListeners = (socket: Socket) => {
 			console.log("Setting up socket listeners")
 
-			socket.on("ready", (data: any) => {
+			socket.on("ready", () => {
 
 			})
 
@@ -122,7 +122,7 @@ const Game: React.FC = () => {
 				addPreview(data.player, data.board)
 			})
 
-			socket.on("game_over", (data: any) => {
+			socket.on("game_over", () => {
 				console.log("Game over")
 			})
 

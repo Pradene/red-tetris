@@ -1,4 +1,4 @@
-import { TetrominoType, TetrominoShapes } from "@shared/define"
+import { TetrominoType, TetrominoShapes } from "../types/define"
 
 import { Piece } from "./piece"
 import { Player } from "./player"

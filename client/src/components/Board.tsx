@@ -2,8 +2,6 @@ import React from "react"
 
 import { CellState, Cell } from "./Cell"
 
-import styles from "./Board.module.css"
-
 interface BoardProps {
 	cols: number,
 	rows: number,

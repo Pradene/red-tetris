@@ -1,4 +1,4 @@
-import { TetrominoType } from '@shared/define'
+import { TetrominoType } from '../types/define'
 import { Piece } from './piece'
 
 describe('Piece class', () => {
