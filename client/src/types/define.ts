@@ -8,3 +8,9 @@ export interface AuthState {
     loading: boolean
     user: User | null
 }
+
+export type GameMode = 
+    "solo" |
+    "multiplayer" |
+    "survival" |
+    null;

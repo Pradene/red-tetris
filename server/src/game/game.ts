@@ -78,15 +78,15 @@ export class Game {
 			return
 		}
 
-		io.to(socketId).emit("game_update", data)
+		io.to(socketId).emit("gameUpdate", data)
 	}
 
 	public sendGamePreview(data: any) {
-		io.to(this.id).emit("game_preview", data)
+		io.to(this.id).emit("gamePreview", data)
 	}
 
 	public sendScoreUpdate(data: any) {
-		io.to(this.id).emit("score_update", data)
+		io.to(this.id).emit("scoreUpdate", data)
 	}
 
 	public sendGameOver(data: any) {
@@ -98,7 +98,7 @@ export class Game {
 			username: player.username
 		}))
 
-		io.to(this.id).emit("game_started", {
+		io.to(this.id).emit("gameStarted", {
 			gameId: this.id,
 			players: players,
 		})

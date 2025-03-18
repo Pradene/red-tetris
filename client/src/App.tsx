@@ -7,17 +7,18 @@ import {
   Outlet
 } from 'react-router-dom'
 
-import Game from './pages/Game'
-import Home from './pages/Home'
-import Login from './pages/Login'
-import Register from './pages/Register'
-
 import { useDispatch } from 'react-redux'
 import { AppDispatch, RootState } from './store/store'
 
 import { checkAuth } from './store/authThunk'
 import { useSelector } from 'react-redux'
+
 import LoadingScreen from './components/LoadingScreen'
+import Matchmaking from './pages/Matchmaking'
+import Game from './pages/Game'
+import Home from './pages/Home'
+import Login from './pages/Login'
+import Register from './pages/Register'
 
 const ProtectedRoute: React.FC = () => {
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated)
@@ -54,8 +55,8 @@ const App: React.FC = () => {
   return (
     <Router>
       <Routes>
-
           <Route element={<ProtectedRoute />}>
+            <Route path="/matchmaking/:mode" element={<Matchmaking /> } />
             <Route path='/:room/:username' element={<Game />} />
             <Route path='/' element={<Home />} />
             <Route path='*' element={<Navigate to="/" replace />} />
@@ -66,7 +67,6 @@ const App: React.FC = () => {
             <Route path='/login' element={<Login />} />
             <Route path='*' element={<Navigate to="/login" replace />} />
           </Route>
-
       </Routes>
     </Router>
   )

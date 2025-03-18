@@ -1,56 +1,51 @@
-import React, { FormEvent, useState } from "react"
+import React from "react"
 import { useSelector } from "react-redux"
 import { useNavigate } from "react-router-dom"
 import { RootState } from "../store/store"
-import LogoutButton from "../components/LogoutButton"
+
+import { GameMode } from "../types/define"
+
+import Nav from "../components/Nav"
+
+import styles from "./Home.module.css"
 
 const Home: React.FC = () => {
-	const user = useSelector((state: RootState) => state.auth.user)
-	const [ room, setRoom ] = useState("")
-	const navigate = useNavigate()
+	const user = useSelector((state: RootState) => state.auth.user);
+	const navigate = useNavigate();
 
-	const handleSubmit = (event: FormEvent) => {
-		event.preventDefault()
-		joinRoom()
-	}
-
-	const joinRoom = () => {
-		if (!room) {
-			console.error("Enter a room name")
-			return
-		} else if (user?.username === undefined) {
-			console.error("Couldn't not find connected user")
-			return
+	const joinGame = (mode: GameMode) => {
+		if (!mode) {
+		  console.error("Select a game mode");
+		  return;
 		}
-
-		navigate(`/${room}/${user?.username}`)
-	}
+	
+		if (!user?.username) {
+		  console.error("User not authenticated");
+		  return;
+		}
+	
+		switch(mode) {
+		  case 'solo':
+			navigate(`/solo/${user.username}`);
+			break;
+	
+		  case 'multiplayer':
+		  case 'survival':
+			navigate(`/matchmaking/${mode}`);
+			break;
+		}
+	  };
 
 	return (
-		<div style={{
-			width: "100%",
-			height: "100%",
-			display: "flex",
-			gap: "2rem",
-			flexDirection: "column",
-			alignItems: "center",
-			justifyContent: "center",
-		}}>
-			<form style={{
-				display: "flex",
-				gap: "1rem",
-				flexDirection: "column"
-			}} onSubmit={handleSubmit}>
-				<input
-					type="text"
-					placeholder="Room"
-					value={room}
-					onChange={(e) => setRoom(e.target.value)}/>
-				<button type="submit">Join / create game</button>
-			</form>
-			<LogoutButton />
-		</div>
+		<>
+			<Nav />
+			<div className={styles.home}>
+				<button type="button" className={styles.gameButton} onClick={() => joinGame("multiplayer")}>Multiplayer</button>
+				<button type="button" className={styles.gameButton} onClick={() => joinGame("survival")}>Survival</button>
+				<button type="button" className={styles.gameButton} onClick={() => joinGame("solo")}>Solo</button>
+			</div>
+		</>
 	)
 }
 
-export default Home
+export default Home;

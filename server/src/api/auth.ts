@@ -3,7 +3,7 @@ import { body, validationResult } from "express-validator";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-import User from "../../db/models/User";
+import User from "../db/models/User";
 
 interface TokenPayload {
 	id: number,

@@ -6,7 +6,7 @@ const games: Map<string, Game> = new Map();
 
 export const registerSocketHandlers = (io: Server, socket: Socket) => {
 
-	socket.on('join_game', (data) => {
+	socket.on('gameJoin', (data) => {
 		const username = socket.data.user.username;
 		const { roomName } = data;
 		if (roomName === undefined) {
@@ -25,7 +25,7 @@ export const registerSocketHandlers = (io: Server, socket: Socket) => {
 		game.addPlayer(username, socket.id);
 	});
 
-	socket.on("start_game", (data) => {
+	socket.on("startGame", (data) => {
 		const { roomName } = data;
 		if (roomName === undefined) {
 			return;
@@ -35,7 +35,7 @@ export const registerSocketHandlers = (io: Server, socket: Socket) => {
 		game?.start();
 	});
 
-	socket.on("restart_game", (data) => {
+	socket.on("restartGame", (data) => {
 		const { roomName } = data;
 		if (roomName === undefined) {
 			return;
@@ -45,7 +45,7 @@ export const registerSocketHandlers = (io: Server, socket: Socket) => {
 		game?.restart();
 	});
 
-	socket.on("quit_game", (data) => {
+	socket.on("gameQuit", (data) => {
 		console.log("Quit game");
 		const { roomName } = data;
 		if (roomName === undefined) {

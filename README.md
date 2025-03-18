@@ -10,6 +10,14 @@
 
 ## Installation
 
+### Env
+
+Add a .env file inside server (there is an example) :
+
+```txt
+JWT_SECRET={secret}
+```
+
 To run Red Tetris locally on your system or deploy it for your own server, follow the instructions below.
 
 ### Prerequisites
@@ -22,7 +30,8 @@ To run Red Tetris locally on your system or deploy it for your own server, follo
 1. Clone the repository:
    ```bash
    git clone https://github.com/Pradene/red-tetris.git
-2. Run the project:
+2. Run the server and client:
     ```bash
-   npm run start
-3. Visit the website: http://localhost:5000/
+   npm run start:dev # Inside server dir
+   npm run start:dev # Inside client dir
+3. Visit the website: http://localhost:5173/

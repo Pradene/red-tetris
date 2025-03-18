@@ -1,15 +1,16 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import http from "http";
 import cors from "cors";
 import path from "path";
-
 import cookieParser from "cookie-parser";
-
 import "./config/dotenv";
-import authRoutes from "./api/auth/auth";
+
 import initializeDb from "./db/utils/init";
 
-const NODE_ENV = process.env.NODE_ENV || "production";
+import authRoutes from "./api/auth";
+import matchmakingRoutes from "./api/matchmaking";
+
+const NODE_ENV = process.env.NODE_ENV || "development";
 
 if (NODE_ENV !== "test") {
 	initializeDb();
@@ -28,16 +29,17 @@ app.use(cors({
 app.set("trust proxy", true);
 
 app.use("/api/auth", authRoutes);
+app.use("/api/matchmaking", matchmakingRoutes);
 
 if (NODE_ENV === "production") {
 	const CLIENT_BUILD_FOLDER = path.join(__dirname, "../../client/build");
 	app.use(express.static(CLIENT_BUILD_FOLDER));
-	app.get("*", (req, res) => {
+	app.get("*", (req: Request, res: Response) => {
 		res.sendFile(path.join(CLIENT_BUILD_FOLDER, "/index.html"));
 	});
 
 } else {
-	app.get("*", (req, res) => {
+	app.get("*", (req: Request, res: Response) => {
 		res.send("React app is not built yet.");
 	});
 }
