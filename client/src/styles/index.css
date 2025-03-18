@@ -24,7 +24,7 @@ button {
   font-family: 'Orbitron-Bold';
   color: white;
   background-color: transparent;
-  outline: none;
+  outline: transparent;
   border: none;
   font-size: 0.8rem;
   cursor: pointer;
@@ -36,7 +36,7 @@ button {
 }
 
 input {
-  outline: none;
+  outline: transparent;
   border: none;
   color: white;
   padding: 0.25rem 0rem;
@@ -52,4 +52,22 @@ input::placeholder {
 #root {
   height: 100%;
   width: 100%;
+}
+
+:root {
+  --color-primary: ;
+  --color-secondary: ;
+  --color-primary: ;
+  --color-primary: ;
+  
+  --color-O: #f5ff68;
+  --color-I: #71e8ec;
+  --color-S: #eb5b5b;
+  --color-Z: #36cf7b;
+  --color-L: #faaa33;
+  --color-J: #f88ed8;
+  --color-T: #b055cc;
+  --color-X: #ffacac;
+  --color-0: transparent;
+
 }

@@ -19,8 +19,9 @@
     border-radius: 1rem 0rem 0rem 1rem;
     transform: translateX(1rem);
     transition: 0.2s ease-in-out;
-}
 
-.gameButton:hover {
-    transform: translateX(0rem);
+    &:hover,
+    &:focus {
+        transform: translateX(0rem);
+    }
 }

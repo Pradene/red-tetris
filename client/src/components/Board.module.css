@@ -1,0 +1,9 @@
+.board {
+    --cols: 10;
+    --rows: 20;
+    height: 100%;
+    display: grid;
+    margin: auto;
+    grid-template-columns: repeat(var(--cols), minmax(0, auto));
+    grid-template-rows: repeat(var(--rows), minmax(0, auto));
+}
