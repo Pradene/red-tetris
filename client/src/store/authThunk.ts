@@ -1,7 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import { tokenRequest } from "../api/auth"
 import { setAuthenticated, setUnauthenticated } from "./authReducer"
-import { User } from "./types"
+import { User } from "../types/define"
 import { connectSocket } from "../utils/socket"
 
 export const checkAuth = createAsyncThunk<void, void>(

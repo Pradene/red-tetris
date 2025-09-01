@@ -21,7 +21,7 @@ const Game: React.FC = () => {
 	const [ lines, setLines ] = useState<number>(0)
 	const [ score, setScore ] = useState<number>(0)
 
-	const [ keyPressed, setKeyPressed ] = useState<Boolean>(false)
+	const [pressedKeys, setPressedKeys] = useState<Set<string>>(new Set())
 	const [ previews, setPreviews ] = useState<Map <string, CellState[][]> >(new Map())
 	const addPreview = (username: string, board: CellState[][]) => {
 		setPreviews((prev) => {
@@ -44,54 +44,42 @@ const Game: React.FC = () => {
 	const roomName = urlParams[1]
 
 	useEffect(() => {
-		const handleKeyPressed = (event: KeyboardEvent) => {
-			if (keyPressed) {
-				return
-			}
-
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (pressedKeys.has(e.key)) return
+			
+			setPressedKeys(prev => new Set(prev).add(e.key))
+			
 			const socket = getSocket()
-			if (socket === undefined) {
-				return
+			if (!socket) return
+			
+			const keyActions: Record<string, () => void> = {
+				'ArrowLeft': () => socket.emit("move", {roomName, direction: {x: -1, y: 0}}),
+				'ArrowRight': () => socket.emit("move", {roomName, direction: {x: 1, y: 0}}),
+				'ArrowUp': () => socket.emit("rotate", {roomName}),
+				'ArrowDown': () => socket.emit("moveToBottom", {roomName}),
+				's': () => socket.emit("startGame", {roomName}),
+				'r': () => socket.emit("restartGame", {roomName})
 			}
-
-			setKeyPressed(true)
-
-			switch (event.key) {
-				case "s":
-					socket?.emit("startGame", {roomName: roomName})
-					break
-				case "ArrowLeft":
-					socket?.emit("move", {roomName: roomName, direction: {x: -1, y: 0}})
-					break
-				case "ArrowRight":
-					socket?.emit("move", {roomName: roomName, direction: {x: 1, y: 0}})
-					break
-				case "ArrowUp":
-					socket?.emit("rotate", {roomName: roomName})
-					break
-				case "ArrowDown":
-					socket?.emit("moveToBottom", {roomName: roomName})
-					break
-				case "r":
-					socket?.emit("restartGame", {roomName: roomName})
-					break
-				default:
-					break
-			}
+			
+			keyActions[e.key]?.()
 		}
-
-		const handleKeyUp = () => {
-			setKeyPressed(false)
+		
+		const handleKeyUp = (e: KeyboardEvent) => {
+			setPressedKeys(prev => {
+				const next = new Set(prev)
+				next.delete(e.key)
+				return next
+			})
 		}
-
-		window.addEventListener("keydown", handleKeyPressed)
-		window.addEventListener("keyup", handleKeyUp)
-
+		
+		window.addEventListener('keydown', handleKeyDown)
+		window.addEventListener('keyup', handleKeyUp)
+		
 		return () => {
-			window.removeEventListener("keydown", handleKeyPressed)
-			window.removeEventListener("keyup", handleKeyUp)
+			window.removeEventListener('keydown', handleKeyDown)
+			window.removeEventListener('keyup', handleKeyUp)
 		}
-	}, [keyPressed])
+	}, [roomName, pressedKeys])
 
 	useEffect(() => {
 		const setupSocketListeners = (socket: Socket) => {

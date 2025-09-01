@@ -1,73 +1,72 @@
 @font-face {
-  font-family: 'Orbitron-Bold';
-  src: url('/fonts/Orbitron-Bold.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
+    font-family: 'Orbitron-Bold';
+    src: url('/fonts/Orbitron-Bold.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
 }
 
 html {
-  height: 100%;
+    height: 100%;
 }
 
 body {
-  height: 100%;
-  margin: 0;
-  color: white;
-  background-color: black;
-  font-family: 'Orbitron-Bold';
-  font-size: 0.8rem;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    height: 100%;
+    margin: 0;
+    color: white;
+    background-color: black;
+    font-family: 'Orbitron-Bold';
+    font-size: 0.8rem;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 button {
-  font-family: 'Orbitron-Bold';
-  color: white;
-  background-color: transparent;
-  outline: transparent;
-  border: none;
-  font-size: 0.8rem;
-  cursor: pointer;
+    font-family: 'Orbitron-Bold';
+    color: white;
+    background-color: transparent;
+    outline: transparent;
+    border: none;
+    font-size: 0.8rem;
+    cursor: pointer;
 }
 
 .button {
-  background-color: white;
-  color: black;
+    background-color: white;
+    color: black;
 }
 
 input {
-  outline: transparent;
-  border: none;
-  color: white;
-  padding: 0.25rem 0rem;
-  border-bottom: 1px solid white;
-  background-color: transparent;
-  font-family: 'Orbitron-Bold';
+    outline: transparent;
+    border: none;
+    color: white;
+    padding: 0.25rem 0rem;
+    border-bottom: 1px solid white;
+    background-color: transparent;
+    font-family: 'Orbitron-Bold';
 }
 
 input::placeholder {
-  color: white;
+    color: white;
 }
 
 #root {
-  height: 100%;
-  width: 100%;
+    height: 100%;
+    width: 100%;
 }
 
 :root {
-  --color-primary: ;
-  --color-secondary: ;
-  --color-primary: ;
-  --color-primary: ;
-  
-  --color-O: #f5ff68;
-  --color-I: #71e8ec;
-  --color-S: #eb5b5b;
-  --color-Z: #36cf7b;
-  --color-L: #faaa33;
-  --color-J: #f88ed8;
-  --color-T: #b055cc;
-  --color-X: #ffacac;
-  --color-0: transparent;
-
+    --color-primary: ;
+    --color-secondary: ;
+    --color-primary: ;
+    --color-primary: ;
+    
+    --color-O: #f5ff68;
+    --color-I: #71e8ec;
+    --color-S: #eb5b5b;
+    --color-Z: #36cf7b;
+    --color-L: #faaa33;
+    --color-J: #f88ed8;
+    --color-T: #b055cc;
+    --color-X: #ffacac;
+    --color-0: transparent;
 }
